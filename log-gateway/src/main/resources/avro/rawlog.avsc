@@ -1,0 +1,10 @@
+{
+	"namespace":"com.beabloo.bigdata.model",
+    "type":"record",
+    "name":"RawLog",
+    "fields" : [
+    	{"name":"Timestamp", "type":"long" },
+        {"name":"Type", "type":"string" },
+		{"name":"RawData", "type":"string" }
+	]
+}

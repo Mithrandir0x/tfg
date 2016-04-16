@@ -1,0 +1,89 @@
+group 'com.beabloo.bigdata'
+version '1.0-SNAPSHOT'
+
+project.ext {
+    aspectjVersion = '1.8.4'
+}
+
+apply plugin: 'maven'
+apply plugin: 'java'
+apply plugin: 'war'
+
+sourceCompatibility = 1.8
+
+def avroVersion = '1.7.7'
+def kafkaVersion = '0.8.2.2'
+def kryoVersion = '3.0.3'
+def servletApiVersion = '3.1.0'
+
+def kafkaArtifact = 'kafka_2.10'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+    jcenter()
+}
+
+buildscript {
+    // configurations.create('buildscript')
+    repositories {
+        maven {
+            url "https://maven.eveoh.nl/content/repositories/releases"
+        }
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+
+    dependencies {
+        //buildscript 'com.beabloo.basegradlescripts:base-script-java:RB-SNAPSHOT'
+
+        // aspectj
+        classpath "nl.eveoh:gradle-aspectj:1.6"
+
+        // gradle avro integration
+        classpath "com.commercehub.gradle.plugin:gradle-avro-plugin:0.8.0"
+
+        //ant.unjar src: configurations.buildscript.singleFile, dest: '.gradle'
+    }
+}
+
+// apply from: '.gradle/java/base-script-java.gradle'
+
+dependencies {
+
+    compile 'com.beabloo.bigdata:hadoop-common:1.0-SNAPSHOT'
+
+    // fileutils dependencies
+    compile 'commons-io:commons-io:2.4'
+
+    // kafka serde stuff
+    compile "org.apache.avro:avro:$avroVersion"
+    compile "com.esotericsoftware:kryo:$kryoVersion"
+
+    compile "org.apache.kafka:$kafkaArtifact:$kafkaVersion"
+    compile "org.apache.kafka:kafka-clients:$kafkaVersion"
+
+    providedCompile "javax.servlet:javax.servlet-api:$servletApiVersion"
+
+    testCompile 'junit:junit:4.11'
+    testCompile "com.101tec:zkclient:0.4"
+    testCompile "org.apache.kafka:$kafkaArtifact:$kafkaVersion:test"
+
+}
+
+task explodeWar(type: Copy) {
+    into "$buildDir/exploded"
+    with war
+}
+
+task generateAvroSchemaModels(type: com.commercehub.gradle.plugin.avro.GenerateAvroJavaTask) {
+    source("src/main/resources/avro")
+    outputDir = file("$buildDir/generatedSources/avro/src/main/java")
+    copy {
+        from "$buildDir/generatedSources/avro/src/main/java"
+        into 'src/main/java'
+    }
+}
+
+apply plugin: 'aspectj'

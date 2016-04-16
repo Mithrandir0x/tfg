@@ -1,0 +1,13 @@
+<!DOCTYPE aspectj PUBLIC "-//AspectJ//DTD//EN" "http://www.eclipse.org/aspectj/dtd/aspectj.dtd">
+<aspectj>
+    <aspects>
+        <!-- use only this aspect for weaving -->
+        <aspect name="com.beabloo.bigdata.testMultipleAspectj.aspects.SayHelloInterceptor" />
+    </aspects>
+    <!-- <weaver options="-verbose -debug -showWeaveInfo -Xlint"> -->
+    <weaver options="-XnoInline -Xreweavable -verbose -showWeaveInfo">
+    <!-- <weaver> -->
+        <!-- only weave classes in this package -->
+        <include within="com.beabloo.bigdata.testMultipleAspectj.programs.*" />
+    </weaver>
+</aspectj>
