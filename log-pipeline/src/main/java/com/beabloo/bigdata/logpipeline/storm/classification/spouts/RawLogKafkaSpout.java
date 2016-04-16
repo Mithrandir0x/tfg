@@ -1,7 +1,7 @@
 package com.beabloo.bigdata.logpipeline.storm.classification.spouts;
 
-import storm.kafka.KafkaSpout;
-import storm.kafka.SpoutConfig;
+import org.apache.storm.kafka.KafkaSpout;
+import org.apache.storm.kafka.SpoutConfig;
 
 public class RawLogKafkaSpout extends KafkaSpout {
 

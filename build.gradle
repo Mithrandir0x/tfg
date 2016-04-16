@@ -1,0 +1,50 @@
+subprojects {
+    group 'com.beabloo.bigdata'
+    version '1.0-SNAPSHOT'
+
+    apply plugin: 'maven'
+    apply plugin: 'java'
+
+    sourceCompatibility = 1.8
+
+    repositories {
+        mavenCentral()
+        mavenLocal()
+        jcenter()
+    }
+
+    buildscript {
+        // configurations.create('buildscript')
+        repositories {
+            maven {
+                url "https://plugins.gradle.org/m2/"
+            }
+        }
+
+        dependencies {
+            //buildscript 'com.beabloo.basegradlescripts:base-script-java:RB-SNAPSHOT'
+            //ant.unjar src: configurations.buildscript.singleFile, dest: '.gradle'
+        }
+    }
+
+    // apply from: '.gradle/java/base-script-java.gradle'
+
+    dependencies {
+        // fileutils dependencies
+        compile 'commons-io:commons-io:2.4'
+    }
+
+    project.ext {
+        avroVersion = '1.7.7'
+        
+        kafkaVersion = '0.8.2.2'
+        kafkaArtifact = 'kafka_2.10'
+        
+        kryoVersion = '3.0.3'
+
+        stormVersion = '1.0.0'
+        
+        servletApiVersion = '3.1.0'
+    }
+
+}

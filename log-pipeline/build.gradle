@@ -1,36 +1,8 @@
-group 'com.beabloo.bigdata'
-version '1.0-SNAPSHOT'
-
 project.ext {
     aspectjVersion = '1.8.4'
 }
 
-apply plugin: 'java'
-
-sourceCompatibility = 1.8
-
-def avroVersion = '1.7.7'
-def kafkaVersion = '0.8.2.2'
-def kryoVersion = '3.0.3'
-def stormVersion = '0.10.0'
-
-def kafkaArtifact = 'kafka_2.10'
-
-repositories {
-    mavenCentral()
-    jcenter()
-}
-
 buildscript {
-    repositories {
-        maven {
-            url "https://maven.eveoh.nl/content/repositories/releases"
-        }
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-    }
-
     dependencies {
         classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
     }
@@ -39,12 +11,6 @@ buildscript {
 apply plugin: 'com.github.johnrengelman.shadow'
 
 dependencies {
-
-    compile 'com.beabloo.bigdata:hadoop-common:1.0-SNAPSHOT'
-
-    // fileutils dependencies
-    compile "commons-io:commons-io:2.4"
-
     // kafka serde stuff
     compile "org.apache.avro:avro:$avroVersion"
     compile "com.esotericsoftware:kryo:$kryoVersion"
@@ -60,4 +26,5 @@ dependencies {
     testCompile "com.101tec:zkclient:0.4"
     testCompile "org.apache.kafka:$kafkaArtifact:$kafkaVersion:test"
 
+    compile project(':hadoop-common')
 }

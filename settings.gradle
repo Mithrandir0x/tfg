@@ -1,0 +1,1 @@
+include "hadoop-common", "log-gateway", "log-pipeline"
