@@ -10,8 +10,11 @@ import java.util.Map;
 
 public class CockroachDataRouterBolt extends BaseRichBolt {
 
+    private OutputCollector outputCollector;
+
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
+        outputCollector = collector;
     }
 
     @Override

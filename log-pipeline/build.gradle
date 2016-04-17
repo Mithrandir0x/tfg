@@ -21,6 +21,7 @@ dependencies {
     compile "org.apache.storm:storm-core:$stormVersion"
     compile "org.apache.storm:storm-hbase:$stormVersion"
     compile "org.apache.storm:storm-kafka:$stormVersion"
+    compile "org.apache.storm:storm-hdfs:$stormVersion"
 
     testCompile 'junit:junit:4.11'
     testCompile "com.101tec:zkclient:0.4"
