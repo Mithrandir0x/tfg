@@ -1,0 +1,16 @@
+group 'org.apache.storm'
+version "2.0.0-SNAPSHOT"
+
+dependencies {
+
+    compile "org.apache.hadoop:hadoop-client:$hadoopVersion"
+    compile "org.yaml:snakeyaml:1.17"
+    compile "org.apache.hadoop:hadoop-hdfs:$hadoopVersion"
+    compile "org.apache.hadoop:hadoop-auth:$hadoopVersion"
+    compile "io.confluent:kafka-avro-serializer:1.0"
+
+    testCompile "org.mockito:mockito-all:1.+"
+    testCompile "junit:junit:4.11"
+    testCompile "org.apache.hadoop:hadoop-minicluster:$hadoopVersion"
+
+}

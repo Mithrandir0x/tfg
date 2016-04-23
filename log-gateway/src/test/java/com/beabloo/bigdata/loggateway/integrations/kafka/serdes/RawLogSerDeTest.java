@@ -10,7 +10,7 @@ public class RawLogSerDeTest {
     @Test
     public void anotherTest() throws Exception {
         RawLog rawLog = new RawLog(
-                0l,
+                0x7fff_ffff_ffff_ffffL,
                 "/helloworld",
                 "%7B%22events%22:%5B%7B%22extraParams%22:%7B%22userid%22:%2217127638%22%7D,%22pa" +
                 "ramsValues%22:%7B%22event%22:1,%22organization%22:%2238041%22,%22post%22:%22203" +
@@ -20,7 +20,7 @@ public class RawLogSerDeTest {
 
         byte[] result = serDe.serialize("test", rawLog);
 
-        String test = "01 00 00 00 00 00 00 00 00 2F 68 65 6C 6C 6F 77 6F 72 " +
+        String hexRepresentation = "01 7F FF FF FF FF FF FF FF 2F 68 65 6C 6C 6F 77 6F 72 " +
                 "6C E4 E8 03 25 37 42 25 32 32 65 76 65 6E 74 73 25 32 32 3A 25 35 42 " +
                 "25 37 42 25 32 32 65 78 74 72 61 50 61 72 61 6D 73 25 32 32 3A 25 37 " +
                 "42 25 32 32 75 73 65 72 69 64 25 32 32 3A 25 32 32 31 37 31 32 37 36 " +
@@ -33,7 +33,13 @@ public class RawLogSerDeTest {
                 "61 67 73 25 32 32 3A 25 32 32 77 65 62 25 32 32 25 37 44 25 37 44 25 " +
                 "35 44 25 37 44";
 
-        assertEquals(test, bytesToHex(result));
+        assertEquals(hexRepresentation, bytesToHex(result));
+
+        RawLog test = serDe.deserialize("test", result);
+
+        assertEquals(rawLog.getType(), test.getType());
+        assertEquals(rawLog.getTimestamp(), test.getTimestamp());
+        assertEquals(rawLog.getData(), test.getData());
     }
 
     final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();

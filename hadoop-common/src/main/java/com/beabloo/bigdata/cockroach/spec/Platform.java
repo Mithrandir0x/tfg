@@ -10,6 +10,16 @@ public enum Platform {
     TRILATERATION,
     BLUETOOTH,
     RECOGNITION,
-    INTERACTIVE
+    INTERACTIVE;
+
+    public static Platform getPlatform(String name) {
+        for ( Platform p : values() ) {
+            if ( p.name().equalsIgnoreCase(name) ){
+                return p;
+            }
+        }
+
+        return null;
+    }
 
 }

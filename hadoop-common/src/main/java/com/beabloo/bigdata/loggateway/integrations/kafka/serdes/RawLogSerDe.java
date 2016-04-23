@@ -1,5 +1,6 @@
 package com.beabloo.bigdata.loggateway.integrations.kafka.serdes;
 
+import com.beabloo.bigdata.kryo.serdes.KryoSerDe;
 import com.beabloo.bigdata.model.RawLog;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.ByteBufferInput;
@@ -13,15 +14,7 @@ import java.util.Map;
 
 public class RawLogSerDe implements Serializer<RawLog>, Deserializer<RawLog> {
 
-    private ThreadLocal<Kryo> kryo = new ThreadLocal<Kryo>() {
-
-        protected Kryo initialValue() {
-            Kryo kryo = new Kryo();
-            kryo.addDefaultSerializer(RawLog.class, new KryoInternalSerializer());
-            return kryo;
-        }
-
-    };
+    private KryoSerDe kryo = new KryoSerDe();
 
     @Override
     public void configure(Map<String, ?> configs, boolean isKey) {
@@ -45,25 +38,6 @@ public class RawLogSerDe implements Serializer<RawLog>, Deserializer<RawLog> {
 
     @Override
     public void close() {
-    }
-
-    private static class KryoInternalSerializer extends com.esotericsoftware.kryo.Serializer<RawLog> {
-
-        @Override
-        public void write(Kryo kryo, Output output, RawLog rawLog) {
-            output.writeLong(rawLog.getTimestamp());
-            output.writeString(rawLog.getType());
-            output.writeString(rawLog.getData());
-        }
-
-        @Override
-        public RawLog read(Kryo kryo, Input input, Class<RawLog> aClass) {
-            long timestamp = input.readLong();
-            String type = input.readString();
-            String rawData = input.readString();
-            return new RawLog(timestamp, type, rawData);
-        }
-
     }
 
 }

@@ -12,6 +12,26 @@ subprojects {
         mavenCentral()
         mavenLocal()
         jcenter()
+        maven {
+            url = "http://packages.confluent.io/maven/"
+        }
+    }
+
+    project.ext {
+        hadoopVersion = '2.7.1'
+        
+        avroVersion = '1.7.7'
+
+        jacksonVersion = '2.7.3'
+
+        kafkaVersion = '0.8.2.2'
+        kafkaArtifact = 'kafka_2.10'
+
+        kryoVersion = '3.0.3'
+
+        stormVersion = '1.0.0'
+
+        servletApiVersion = '3.1.0'
     }
 
     buildscript {
@@ -33,19 +53,18 @@ subprojects {
     dependencies {
         // fileutils dependencies
         compile 'commons-io:commons-io:2.4'
-    }
 
-    project.ext {
-        avroVersion = '1.7.7'
-        
-        kafkaVersion = '0.8.2.2'
-        kafkaArtifact = 'kafka_2.10'
-        
-        kryoVersion = '3.0.3'
+        compile "com.fasterxml.jackson.core:jackson-core:$jacksonVersion"
+        compile "com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion"
+        compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
 
-        stormVersion = '1.0.0'
-        
-        servletApiVersion = '3.1.0'
+        compile "org.apache.storm:storm-core:$stormVersion"
+
+        compile "org.hibernate:hibernate-validator:5.2.4.Final"
+        compile "javax.el:javax.el-api:2.2.4"
+        compile "org.glassfish.web:javax.el:2.2.4"
+
+        compile "org.apache.hadoop:hadoop-client:$hadoopVersion"
     }
 
 }

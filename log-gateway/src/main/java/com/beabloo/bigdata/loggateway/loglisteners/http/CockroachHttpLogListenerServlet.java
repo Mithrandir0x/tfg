@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 @WebServlet(urlPatterns = {"/activityTracking/*"}, loadOnStartup = 1)
 public class CockroachHttpLogListenerServlet extends AbstractHttpLogListenerServlet {
 
-    private static Pattern validUri = Pattern.compile("^.*/activityTracking/[a-zA-Z_0-9]*.*$");
+    private static Pattern validUri = Pattern.compile("^.*/activityTracking/[a-zA-Z_0-9]+.*$");
 
     @Override
     public void onIncomingLog(HttpServletRequest request) {
