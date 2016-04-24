@@ -3,9 +3,9 @@ package com.beabloo.bigdata.cockroach;
 import com.beabloo.bigdata.cockroach.model.CockroachEventHttpRequestContainer;
 import com.beabloo.bigdata.cockroach.model.ParamsContainer;
 import com.beabloo.bigdata.cockroach.serdes.ParamsContainerFastDeserializer;
-import org.codehaus.jackson.*;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.module.SimpleModule;
+import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.junit.Test;
 
 import java.io.IOException;

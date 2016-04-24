@@ -24,14 +24,23 @@ subprojects {
 
         jacksonVersion = '2.7.3'
 
-        kafkaVersion = '0.8.2.2'
+        kafkaVersion = '0.9.0.0'
         kafkaArtifact = 'kafka_2.10'
+        // kafka artifact indicated which scala version has been used to compile it
+        scalaVersion = '2.10.6'
 
         kryoVersion = '3.0.3'
 
         stormVersion = '1.0.0'
 
         servletApiVersion = '3.1.0'
+
+        zookeeperVersion = '3.4.6'
+    }
+
+    configurations {
+        provided
+        compile.extendsFrom provided
     }
 
     buildscript {
@@ -58,13 +67,27 @@ subprojects {
         compile "com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion"
         compile "com.fasterxml.jackson.core:jackson-databind:$jacksonVersion"
 
-        compile "org.apache.storm:storm-core:$stormVersion"
-
         compile "org.hibernate:hibernate-validator:5.2.4.Final"
         compile "javax.el:javax.el-api:2.2.4"
         compile "org.glassfish.web:javax.el:2.2.4"
-
-        compile "org.apache.hadoop:hadoop-client:$hadoopVersion"
     }
 
+    task allDeps(type: DependencyReportTask) {}
+
+}
+
+task dependencyReport {
+    doLast {
+        def file = new File("project-dependencies.dot")
+        file.delete()
+        file << "digraph {\n"
+        file << "splines=ortho\n"
+        rootProject.childProjects.each { item ->
+            def from = item.value
+            from.configurations.compile.dependencies
+                    .matching { it in ProjectDependency }
+                    .each { to -> file << ("\"${from.name}\" -> \"${to.name}\"\n")}
+        }
+        file << "}\n"
+    }
 }

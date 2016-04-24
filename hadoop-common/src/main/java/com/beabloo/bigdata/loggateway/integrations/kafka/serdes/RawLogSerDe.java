@@ -2,11 +2,8 @@ package com.beabloo.bigdata.loggateway.integrations.kafka.serdes;
 
 import com.beabloo.bigdata.kryo.serdes.KryoSerDe;
 import com.beabloo.bigdata.model.RawLog;
-import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.ByteBufferInput;
 import com.esotericsoftware.kryo.io.ByteBufferOutput;
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.common.serialization.Serializer;
 

@@ -16,12 +16,7 @@ import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
 import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
 import org.apache.storm.topology.TopologyBuilder;
 
-import static com.beabloo.bigdata.logpipeline.storm.classification.bolts.RawLogProtocolSplitterBolt.HTTP_COCKROACH_STREAM;
-
 public class LogClassificationTopology {
-
-
-    private static final String TOPOLOGY_NAME = "rawlog_consumer_topology";
 
     public static void main(String[] args) {
 
@@ -43,7 +38,7 @@ public class LogClassificationTopology {
 
             CockroachUnpackerBolt cockroachUnpackerBolt = new CockroachUnpackerBolt();
             builder.setBolt(CockroachUnpackerBolt.ID, cockroachUnpackerBolt)
-                    .shuffleGrouping(RawLogProtocolSplitterBolt.HTTP_COCKROACH_STREAM, RawLogProtocolSplitterBolt.ID);
+                    .shuffleGrouping(RawLogProtocolSplitterBolt.ID, RawLogProtocolSplitterBolt.HTTP_COCKROACH_STREAM);
 
             CockroachModelParserBolt cockroachModelParserBolt = new CockroachModelParserBolt();
             builder.setBolt(CockroachModelParserBolt.ID, cockroachModelParserBolt)
@@ -64,7 +59,8 @@ public class LogClassificationTopology {
                     .withPartitioner(HdfsLogSelector.getHdfsLogPartitioner())
                     .withSyncPolicy(syncPolicy);
 
-            StormSubmitter.submitTopology(TOPOLOGY_NAME, config, builder.createTopology());
+            config.setNumWorkers(4);
+            StormSubmitter.submitTopology(args[0], config, builder.createTopology());
         } catch ( Exception ex ) {
             ex.printStackTrace();
         }

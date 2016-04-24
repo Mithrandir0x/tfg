@@ -1,19 +1,19 @@
 package com.beabloo.bigdata.cockroach.serdes;
 
 import com.beabloo.bigdata.cockroach.model.ParamsContainer;
-import org.apache.commons.io.IOExceptionWithCause;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.JsonProcessingException;
-import org.codehaus.jackson.ObjectCodec;
-import org.codehaus.jackson.map.DeserializationContext;
-import org.codehaus.jackson.map.JsonDeserializer;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.ObjectCodec;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import java.io.IOException;
 
 public class ParamsContainerFastDeserializer extends JsonDeserializer<ParamsContainer> {
 
-    public ParamsContainer deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
+    @Override
+    public ParamsContainer deserialize(JsonParser jsonParser, DeserializationContext context) throws IOException, JsonProcessingException {
         ObjectCodec objectCodec = jsonParser.getCodec();
         JsonNode node = objectCodec.readTree(jsonParser);
 

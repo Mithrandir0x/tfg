@@ -4,8 +4,8 @@ import com.beabloo.bigdata.cockroach.model.CockroachLog;
 import com.beabloo.bigdata.cockroach.spec.ActivityDefinition;
 import com.beabloo.bigdata.cockroach.spec.Event;
 import com.beabloo.bigdata.cockroach.spec.Platform;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 import javax.validation.Validation;
 import javax.validation.Validator;

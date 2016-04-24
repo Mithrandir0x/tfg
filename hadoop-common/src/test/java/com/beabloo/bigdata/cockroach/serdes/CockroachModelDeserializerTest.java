@@ -1,18 +1,8 @@
 package com.beabloo.bigdata.cockroach.serdes;
 
-import com.beabloo.bigdata.cockroach.model.CockroachEvent;
-import com.beabloo.bigdata.cockroach.model.CockroachLog;
-import com.beabloo.bigdata.cockroach.model.ParamsContainer;
-import com.beabloo.bigdata.cockroach.spec.ActivityDefinition;
 import com.beabloo.bigdata.cockroach.spec.Platform;
 import com.beabloo.bigdata.model.WifiPresenceLog;
-import org.apache.storm.tuple.Values;
-import org.codehaus.jackson.Version;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.module.SimpleModule;
 import org.junit.Test;
-
-import java.io.IOException;
 
 import static org.junit.Assert.*;
 

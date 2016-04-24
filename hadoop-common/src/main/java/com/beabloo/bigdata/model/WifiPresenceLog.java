@@ -5,7 +5,7 @@ import com.beabloo.bigdata.cockroach.model.CockroachLog;
 import com.beabloo.bigdata.cockroach.spec.Event;
 import com.beabloo.bigdata.cockroach.aspects.Parameter;
 import com.beabloo.bigdata.cockroach.spec.Platform;
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.validation.constraints.NotNull;
 import java.util.Map;

@@ -2,8 +2,7 @@ package com.beabloo.bigdata.cockroach.model;
 
 import com.beabloo.bigdata.cockroach.aspects.Parameter;
 import com.beabloo.bigdata.cockroach.spec.ActivityDefinition;
-import org.apache.hadoop.io.Writable;
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.validation.constraints.NotNull;
 import java.util.HashMap;
