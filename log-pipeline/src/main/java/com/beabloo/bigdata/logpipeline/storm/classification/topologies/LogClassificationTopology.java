@@ -12,6 +12,7 @@ import org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat;
 import org.apache.storm.hdfs.bolt.format.FileNameFormat;
 import org.apache.storm.hdfs.bolt.rotation.FileRotationPolicy;
 import org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy;
+import org.apache.storm.hdfs.bolt.rotation.TimedRotationPolicy;
 import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
 import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
 import org.apache.storm.topology.TopologyBuilder;
@@ -48,7 +49,8 @@ public class LogClassificationTopology {
             SyncPolicy syncPolicy = new CountSyncPolicy(5);
 
             // rotate files when they reach 5MB
-            FileRotationPolicy rotationPolicy = new FileSizeRotationPolicy(5.0f, FileSizeRotationPolicy.Units.MB);
+            //FileRotationPolicy rotationPolicy = new FileSizeRotationPolicy(5.0f, FileSizeRotationPolicy.Units.MB);
+            TimedRotationPolicy rotationPolicy = new TimedRotationPolicy(5, TimedRotationPolicy.TimeUnit.SECONDS);
 
             FileNameFormat fileNameFormat = new DefaultFileNameFormat().withPath("/engine2_big_data/cockroach/");
 

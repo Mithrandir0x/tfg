@@ -17,7 +17,6 @@ apply plugin: 'eu.appsatori.fatjar'
 
 configurations {
     all*.exclude group: 'org.slf4j', module: 'slf4j-log4j12'
-    all*.exclude group: 'org.slf4j', module: 'slf4j-api'
     all*.exclude group: 'log4j', module: 'log4j'
 }
 
@@ -34,6 +33,12 @@ dependencies {
     compile "org.apache.hadoop:hadoop-client:$hadoopVersion"
     compile "org.apache.hadoop:hadoop-hdfs:$hadoopVersion"
     compile "org.apache.zookeeper:zookeeper:$zookeeperVersion"
+
+    provided "org.slf4j:slf4j-api:+", {
+        ext {
+            fatJarExclude = true
+        }
+    }
 
     provided "org.apache.storm:storm-core:$stormVersion", {
         ext {

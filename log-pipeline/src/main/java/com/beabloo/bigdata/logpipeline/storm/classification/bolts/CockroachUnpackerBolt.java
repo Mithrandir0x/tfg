@@ -13,6 +13,8 @@ import org.apache.storm.tuple.Values;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URLDecoder;
 import java.util.Map;
@@ -21,6 +23,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class CockroachUnpackerBolt extends BaseRichBolt {
+
+    private static final Logger log = LoggerFactory.getLogger(CockroachUnpackerBolt.class);
 
     public static final String ID = "COCKROACH_UNPACKER_BOLT_ID";
 
@@ -61,6 +65,7 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
             }
         } else {
             // Notify problem to another stream
+            log.error(String.format("Badly formatted data. platform [%s] json [%s]", platform, json));
         }
     }
 

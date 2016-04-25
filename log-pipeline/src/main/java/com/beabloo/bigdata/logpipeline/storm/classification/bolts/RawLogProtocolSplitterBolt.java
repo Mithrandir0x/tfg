@@ -6,11 +6,15 @@ import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 import java.util.regex.Pattern;
 
 public class RawLogProtocolSplitterBolt extends BaseRichBolt {
+
+    private static final Logger log = LoggerFactory.getLogger(RawLogProtocolSplitterBolt.class);
 
     public static final String ID = "RAWLOG_PROTOCOL_SPLITTER_BOLT_ID";
 
@@ -31,6 +35,8 @@ public class RawLogProtocolSplitterBolt extends BaseRichBolt {
         String type = input.getStringByField("type");
         if ( type.startsWith("http") && cockroachUri.matcher(type).matches() ) {
             outputCollector.emit(HTTP_COCKROACH_STREAM, input.getValues());
+        } else {
+            log.error(String.format("Unknown protocol [%s]", type));
         }
     }
 
