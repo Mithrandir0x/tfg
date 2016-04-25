@@ -54,7 +54,7 @@ public class HdfsLogSelector {
             if ( activityDefinition != null ) {
                 // @TODO Check if this component should assume all start events are expressed in seconds
                 LogPartition partition = new LogPartition(startEvent * 1000);
-                return String.format("%s/year=%s/month=%02s/day=%02s",
+                return String.format("%s/year=%d/month=%02d/day=%02d",
                         activityDefinition.name().toLowerCase(),
                         partition.year,
                         partition.month,
