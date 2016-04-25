@@ -39,4 +39,9 @@ public class RawLog {
         this.data = data;
     }
 
+    @Override
+    public String toString() {
+        return String.format("timestamp [%s] type [%s] data [%s]", timestamp, type, data);
+    }
+
 }

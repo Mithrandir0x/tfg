@@ -7,6 +7,14 @@ project.ext {
     aspectjVersion = '1.8.4'
 }
 
+buildscript {
+    dependencies {
+        classpath 'eu.appsatori:gradle-fatjar-plugin:0.3'
+    }
+}
+
+apply plugin: 'eu.appsatori.fatjar'
+
 configurations {
     all*.exclude group: 'org.slf4j', module: 'slf4j-log4j12'
     all*.exclude group: 'org.slf4j', module: 'slf4j-api'
@@ -22,10 +30,17 @@ dependencies {
     compile "org.scala-lang:scala-library:$scalaVersion"
     // compile "org.scala-lang:scala-xml:2.11.0-M4"
 
-    // provided "org.apache.hadoop:hadoop-client:$hadoopVersion"
+    compile "org.apache.hadoop:hadoop-common:$hadoopVersion"
+    compile "org.apache.hadoop:hadoop-client:$hadoopVersion"
+    compile "org.apache.hadoop:hadoop-hdfs:$hadoopVersion"
     compile "org.apache.zookeeper:zookeeper:$zookeeperVersion"
 
-    provided "org.apache.storm:storm-core:$stormVersion"
+    provided "org.apache.storm:storm-core:$stormVersion", {
+        ext {
+            fatJarExclude = true
+        }
+    }
+
     compile "org.apache.storm:storm-hbase:$stormVersion"
     compile "org.apache.storm:storm-kafka:$stormVersion"
         compile 'com.google.guava:guava:19.0'
@@ -34,11 +49,6 @@ dependencies {
     testCompile "org.apache.storm:storm-core:$stormVersion"
 }
 
-jar {
-    dependsOn configurations.runtime
-    from {
-        ( configurations.runtime - configurations.provided ).collect {
-            it.isDirectory() ? it : zipTree(it)
-        }
-    }
+fatJar {
+    zip64 true
 }

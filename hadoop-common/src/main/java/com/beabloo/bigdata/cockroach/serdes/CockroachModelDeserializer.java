@@ -6,6 +6,9 @@ import com.beabloo.bigdata.cockroach.spec.Event;
 import com.beabloo.bigdata.cockroach.spec.Platform;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.hibernate.validator.HibernateValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.validation.Validation;
 import javax.validation.Validator;
@@ -17,10 +20,12 @@ import java.util.regex.Pattern;
 
 public class CockroachModelDeserializer {
 
-    private static final Pattern eventPattern = Pattern.compile("\"event\"\\: ([0-9]*)");
+    private static final Logger log = LoggerFactory.getLogger(CockroachModelDeserializer.class);
+
+    private static final Pattern eventPattern = Pattern.compile("\"event\"\\: *([0-9]*)");
     private ObjectMapper objectMapper;
 
-    private static final ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+    private static final ValidatorFactory factory = Validation.byProvider(HibernateValidator.class).configure().buildValidatorFactory();
     private Validator validator = factory.getValidator();
 
     private Map<ActivityDefinition, ActivityDeserializer> deserializers = new HashMap<>();
@@ -42,14 +47,20 @@ public class CockroachModelDeserializer {
             Event event = Event.getEvent(eventId);
             if ( event != null ) {
                 values = deserializers.get(ActivityDefinition.getActivityDefinition(platform, event)).deserialize(paramsValues, extraParams);
+            } else {
+                log.warn(String.format("Unknown event id [%s]", eventId));
             }
+        } else {
+            log.warn(String.format("Unknown platform [%s]", platformName));
         }
 
         return values;
     }
 
-    private String getEventId(String paramsValues) {
+    protected String getEventId(String paramsValues) {
         String eventId = null;
+
+        log.debug(String.format("paramsValues [%s]", paramsValues));
 
         Matcher matcher = eventPattern.matcher(paramsValues);
         if ( matcher.find() ) {

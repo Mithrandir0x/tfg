@@ -52,4 +52,13 @@ public class CockroachModelDeserializerTest {
                 "10", wifiLog.toString());
     }
 
+    @Test
+    public void getEventIdTest() {
+        String paramsValue = "{\"device\":\"IDV1203211232\",\"event\":3,\"organization\":\"37929\",\"oui\":\"AA:BB:CC\",\"power\":\"-74\",\"sensor\":\"5432\",\"hotspot\":\"57432\",\"startEvent\":\"1461499200\",\"tags\":\"click1,click2,click3\"}";
+
+        CockroachModelDeserializer cockroachModelDeserializer = new CockroachModelDeserializer();
+
+        assertEquals("3", cockroachModelDeserializer.getEventId(paramsValue));
+    }
+
 }

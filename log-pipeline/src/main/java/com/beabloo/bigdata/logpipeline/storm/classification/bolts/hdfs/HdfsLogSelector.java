@@ -28,7 +28,8 @@ public class HdfsLogSelector {
         @Override
         public byte[] format(Tuple input) {
             CockroachLog cockroachLog = (CockroachLog) input.getValueByField("log");
-            return cockroachLog.toString().getBytes();
+            String logLine = cockroachLog.toString() + CockroachLog.linesTerminatedBy;
+            return logLine.getBytes();
         }
 
     }
@@ -51,8 +52,9 @@ public class HdfsLogSelector {
 
             ActivityDefinition activityDefinition = activities.get(activityName);
             if ( activityDefinition != null ) {
-                LogPartition partition = new LogPartition(startEvent);
-                return String.format("%s/year=%s/month=%s/day=%s",
+                // @TODO Check if this component should assume all start events are expressed in seconds
+                LogPartition partition = new LogPartition(startEvent * 1000);
+                return String.format("%s/year=%s/month=%02s/day=%02s",
                         activityDefinition.name().toLowerCase(),
                         partition.year,
                         partition.month,

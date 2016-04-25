@@ -5,11 +5,12 @@ import com.beabloo.bigdata.cockroach.spec.ActivityDefinition;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.validation.constraints.NotNull;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public abstract class CockroachLog {
+public abstract class CockroachLog implements Serializable {
 
     public static final String fieldsTerminatedBy = "\u0001";
     public static final String collectionItemsTerminatedBy = "\u0002";

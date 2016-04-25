@@ -12,6 +12,8 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class CockroachModelParserBolt extends BaseRichBolt {
 
@@ -35,11 +37,14 @@ public class CockroachModelParserBolt extends BaseRichBolt {
                     input.getStringByField("paramsValues"),
                     input.getStringByField("extraParams"));
             if ( cockroachLog != null ) {
+                Logger.getLogger(CockroachModelParserBolt.class.getName()).log(Level.INFO, String.format("Emitting value cockroachLog [%s]", cockroachLog));
                 outputCollector.emit(new Values(
                         cockroachLog.getActivityDefinition().name(),
                         cockroachLog,
                         cockroachLog.getStartEvent(),
-                        input.getStringByField("timestamp")));
+                        input.getLongByField("timestamp")));
+            } else {
+                Logger.getLogger(CockroachModelParserBolt.class.getName()).log(Level.SEVERE, "Invalid cockroach log received");
             }
         } catch ( Exception ex ) {
             // @TODO Treat Excepcion

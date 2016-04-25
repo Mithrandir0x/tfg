@@ -52,12 +52,15 @@ public class LogClassificationTopology {
 
             FileNameFormat fileNameFormat = new DefaultFileNameFormat().withPath("/engine2_big_data/cockroach/");
 
-            HdfsBolt bolt = new HdfsBolt()
-                    .withFsUrl("hdfs://nn.local.vm:54310")
+            HdfsBolt hdfsBolt = new HdfsBolt()
+                    .withFsUrl("hdfs://nn.local.vm:8020")
                     .withFileNameFormat(fileNameFormat)
                     .withRecordFormat(HdfsLogSelector.getHdfsLogFormat())
                     .withPartitioner(HdfsLogSelector.getHdfsLogPartitioner())
+                    .withRotationPolicy(rotationPolicy)
                     .withSyncPolicy(syncPolicy);
+            builder.setBolt("COCKROACH_HDFS_BOLT_ID", hdfsBolt)
+                    .shuffleGrouping(CockroachModelParserBolt.ID);
 
             config.setNumWorkers(4);
             StormSubmitter.submitTopology(args[0], config, builder.createTopology());

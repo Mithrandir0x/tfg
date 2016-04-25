@@ -14,6 +14,7 @@ import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
+import java.net.URLDecoder;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
@@ -46,10 +47,10 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
         String platform = getPlatform(input.getStringByField("type"));
         if ( json != null && platform != null ) {
             try {
-                CockroachEventHttpRequestContainer container = objectMapper.readValue(json, CockroachEventHttpRequestContainer.class);
+                CockroachEventHttpRequestContainer container = objectMapper.readValue(URLDecoder.decode(json, "UTF-8"), CockroachEventHttpRequestContainer.class);
 
                 for ( ParamsContainer paramsContainer : container.getEvents() ) {
-                    outputCollector.emit(new Values(input.getStringByField("timestamp"),
+                    outputCollector.emit(new Values(input.getValueByField("timestamp"),
                             platform,
                             paramsContainer.getParamsValues(),
                             paramsContainer.getExtraParams()));

@@ -21,20 +21,13 @@ buildscript {
 }
 
 dependencies {
-    // kafka serde stuff
-    compile "org.apache.avro:avro:$avroVersion"
-    compile "com.esotericsoftware:kryo:$kryoVersion"
-
-    compile "org.apache.kafka:$kafkaArtifact:$kafkaVersion"
-    compile "org.apache.kafka:kafka-clients:$kafkaVersion"
+    compile project(':hadoop-common')
 
     providedCompile "javax.servlet:javax.servlet-api:$servletApiVersion"
 
     testCompile 'junit:junit:4.11'
     testCompile "com.101tec:zkclient:0.4"
     testCompile "org.apache.kafka:$kafkaArtifact:$kafkaVersion:test"
-
-    compile project(':hadoop-common')
 }
 
 task explodeWar(type: Copy) {
