@@ -51,6 +51,8 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
         String platform = getPlatform(input.getStringByField("type"));
         if ( json != null && platform != null ) {
             try {
+                log.info(String.format("Received new raw log. json [%s]", json));
+
                 CockroachEventHttpRequestContainer container = objectMapper.readValue(URLDecoder.decode(json, "UTF-8"), CockroachEventHttpRequestContainer.class);
 
                 log.info(String.format("Unpacked [%s] cockroach events", container.getEvents().size()));
