@@ -7,6 +7,8 @@ import com.beabloo.bigdata.cockroach.spec.Platform;
 import org.apache.storm.hdfs.bolt.format.RecordFormat;
 import org.apache.storm.hdfs.common.Partitioner;
 import org.apache.storm.tuple.Tuple;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -14,6 +16,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class HdfsLogSelector {
+
+    private static final Logger log = LoggerFactory.getLogger(HdfsLogSelector.class);
 
     public static HdfsLogFormat getHdfsLogFormat() {
         return new HdfsLogFormat();
@@ -51,7 +55,7 @@ public class HdfsLogSelector {
             Long startEvent = tuple.getLongByField("startEvent");
 
             ActivityDefinition activityDefinition = activities.get(activityName);
-            if ( activityDefinition != null ) {
+            if ( activityDefinition != null && startEvent != null ) {
                 // @TODO Check if this component should assume all start events are expressed in seconds
                 LogPartition partition = new LogPartition(startEvent * 1000);
                 return String.format("%s/year=%d/month=%02d/day=%02d",
@@ -59,9 +63,11 @@ public class HdfsLogSelector {
                         partition.year,
                         partition.month,
                         partition.day);
+            } else {
+                log.warn(String.format("Invalid log. activity [%s] or startEvent [%s] is null.", activityName, startEvent));
             }
 
-            return "";
+            return "error";
         }
 
         private class LogPartition {
