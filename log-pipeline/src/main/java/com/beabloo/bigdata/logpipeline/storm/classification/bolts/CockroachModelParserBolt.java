@@ -2,7 +2,6 @@ package com.beabloo.bigdata.logpipeline.storm.classification.bolts;
 
 import com.beabloo.bigdata.cockroach.model.CockroachLog;
 import com.beabloo.bigdata.cockroach.serdes.CockroachModelDeserializer;
-import com.beabloo.bigdata.kryo.serdes.KryoSerDe;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -23,7 +22,6 @@ public class CockroachModelParserBolt extends BaseRichBolt {
 
     private OutputCollector outputCollector;
     private CockroachModelDeserializer cockroachModelDeserialize;
-    private KryoSerDe kryo;
 
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {

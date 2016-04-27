@@ -46,11 +46,11 @@ public class LogClassificationTopology {
                     .shuffleGrouping(CockroachUnpackerBolt.ID);
 
             // sync the filesystem after every 1k tuples
-            SyncPolicy syncPolicy = new CountSyncPolicy(5);
+            SyncPolicy syncPolicy = new CountSyncPolicy(10);
 
             // rotate files when they reach 5MB
-            //FileRotationPolicy rotationPolicy = new FileSizeRotationPolicy(5.0f, FileSizeRotationPolicy.Units.MB);
-            TimedRotationPolicy rotationPolicy = new TimedRotationPolicy(5, TimedRotationPolicy.TimeUnit.SECONDS);
+            FileRotationPolicy rotationPolicy = new FileSizeRotationPolicy(2.0f, FileSizeRotationPolicy.Units.MB);
+            //TimedRotationPolicy rotationPolicy = new TimedRotationPolicy(5, TimedRotationPolicy.TimeUnit.SECONDS);
 
             FileNameFormat fileNameFormat = new DefaultFileNameFormat().withPath("/engine2_big_data/cockroach/");
 
