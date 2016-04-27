@@ -37,7 +37,7 @@ public class CockroachModelParserBolt extends BaseRichBolt {
                     input.getStringByField("paramsValues"),
                     input.getStringByField("extraParams"));
             if ( cockroachLog != null ) {
-                log.debug(String.format("Emitting value cockroachLog [%s]", cockroachLog));
+                log.info(String.format("Emitting value cockroachLog [%s]", cockroachLog));
                 outputCollector.emit(new Values(
                         cockroachLog.getActivityDefinition().name(),
                         cockroachLog,

@@ -53,6 +53,8 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
             try {
                 CockroachEventHttpRequestContainer container = objectMapper.readValue(URLDecoder.decode(json, "UTF-8"), CockroachEventHttpRequestContainer.class);
 
+                log.info(String.format("Unpacked [%s] cockroach events", container.getEvents().size()));
+
                 for ( ParamsContainer paramsContainer : container.getEvents() ) {
                     outputCollector.emit(new Values(input.getValueByField("timestamp"),
                             platform,

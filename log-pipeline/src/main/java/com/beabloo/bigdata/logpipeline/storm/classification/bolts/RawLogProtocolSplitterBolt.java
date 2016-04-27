@@ -34,6 +34,7 @@ public class RawLogProtocolSplitterBolt extends BaseRichBolt {
     public void execute(Tuple input) {
         String type = input.getStringByField("type");
         if ( type.startsWith("http") && cockroachUri.matcher(type).matches() ) {
+            log.info(String.format("Found new raw log for cockroach..."));
             outputCollector.emit(HTTP_COCKROACH_STREAM, input.getValues());
         } else {
             log.error(String.format("Unknown protocol [%s]", type));
