@@ -72,8 +72,7 @@ if __name__ == '__main__':
             except Exception:
                 print 700, 'I R BABOON'
 
-        #time.sleep(random.randint(1, 15))
-        break
+        time.sleep(random.randint(1, 3))
 
 
 # /log-gateway/activityTracking/wifi?json={"events": [{"paramsValues": {"organization_id": 39159, "hotspot_id": 57469, "oui": "c9:x3:83", "sensor_id": 5173, "power": -106, "start_event": 1461613808, "md5_mac": "7c6834f3d36730fec3a0d268e6b1bd51", "event": 3}, "extraParams": {}}]}
