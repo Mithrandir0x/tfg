@@ -34,11 +34,12 @@ def get_wifi_presence(organizations, hotspots, sensors):
     return {
         'event': events['presence'],
         'organization': organization_id,
-        'start_event': start_event,
+        'startEvent': start_event,
         'hotspot': hotspot_id,
         'sensor': sensor_id,
-        'md5_mac': md5_mac,
+        'device': md5_mac,
         'oui': oui,
+        'tags': '',
         'power': tx_power
     }
 
