@@ -24,14 +24,14 @@ public class RawLogSerDe implements Serializer<RawLog>, Deserializer<RawLog> {
         ByteBufferOutput output = new ByteBufferOutput(1024, 1024 * 1024);
         kryo.get().writeObject(output, rawLog);
         byte[] bytes = output.toBytes();
-        Logger.getLogger(RawLogSerDe.class.getName()).log(Level.SEVERE, String.format("bytes [%s]", bytesToHex(bytes)));
+        //Logger.getLogger(RawLogSerDe.class.getName()).log(Level.SEVERE, String.format("bytes [%s]", bytesToHex(bytes)));
         return bytes;
     }
 
     @Override
     public RawLog deserialize(String topic, byte[] bytes) {
         try {
-            Logger.getLogger(RawLogSerDe.class.getName()).log(Level.SEVERE, String.format("bytes [%s]", bytesToHex(bytes)));
+            //Logger.getLogger(RawLogSerDe.class.getName()).log(Level.SEVERE, String.format("bytes [%s]", bytesToHex(bytes)));
 
             return kryo.get().readObject(new ByteBufferInput(bytes), RawLog.class);
         } catch(Exception e) {

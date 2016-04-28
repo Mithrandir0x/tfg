@@ -60,7 +60,7 @@ class http(object):
 
 if __name__ == '__main__':
     while True:
-        evidences = { 'events': [ { 'paramsValues': get_wifi_presence(organizations, hotspots, sensors), 'extraParams': {} } for i in xrange(random.randint(1, 1)) ] }
+        evidences = { 'events': [ { 'paramsValues': get_wifi_presence(organizations, hotspots, sensors), 'extraParams': {} } for i in xrange(random.randint(1, 5)) ] }
         url = '%s' % endpoints[random.randint(0, 0)]
         with http(url) as connection:
             path = '%s%s/%s?%s' % ( context, activityTrackingPath, platforms[0], urllib.urlencode({'json': json.dumps(evidences)}) )
