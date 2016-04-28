@@ -80,17 +80,19 @@ public class CockroachModelDeserializer {
         }
 
         public CockroachLog deserialize(String paramsValues, String extraParams) throws Exception {
-            CockroachLog log = (CockroachLog) objectMapper.readValue(paramsValues, activityDefinition.getModel());
-            log.setActivityDefinition(activityDefinition);
+            CockroachLog cockroachLog = (CockroachLog) objectMapper.readValue(paramsValues, activityDefinition.getModel());
+            cockroachLog.setActivityDefinition(activityDefinition);
+
+            log.info(String.format("Deserialized cockroachLog [%s]", cockroachLog));
 
             HashMap<String, Object> extras = objectMapper.readValue(extraParams,  new TypeReference<HashMap<String, Object>>() {});
-            Map<String, String> logExtras = log.getExtras();
+            Map<String, String> logExtras = cockroachLog.getExtras();
             for ( Map.Entry<String, Object> entry : extras.entrySet() ) {
                 logExtras.put(entry.getKey(), entry.getValue().toString());
             }
-            validator.validate(log);
+            validator.validate(cockroachLog);
 
-            return log;
+            return cockroachLog;
         }
 
     }
