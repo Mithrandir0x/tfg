@@ -26,7 +26,7 @@ public class RawLogScheme implements Scheme {
         RawLogSerDe serDe = new RawLogSerDe();
         byte[] bufferBytes = buffer.array();
         byte[] bytes = Arrays.copyOfRange(bufferBytes, 71, bufferBytes.length);;
-        Logger.getLogger(RawLogScheme.class.getName()).log(Level.SEVERE, String.format("rawlogscheme bytes [%s]", bytesToHex(bytes)));
+        //Logger.getLogger(RawLogScheme.class.getName()).log(Level.SEVERE, String.format("rawlogscheme bytes [%s]", bytesToHex(bytes)));
 
         RawLog rawLog = serDe.deserialize(null, bytes);
 
