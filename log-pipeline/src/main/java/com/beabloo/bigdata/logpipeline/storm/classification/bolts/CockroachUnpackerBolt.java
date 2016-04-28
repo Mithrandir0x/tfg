@@ -51,14 +51,14 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
         String platform = getPlatform(input.getStringByField("type"));
         if ( json != null && platform != null ) {
             try {
-                log.info(String.format("Received new raw log. json [%s]", json));
+                log.debug(String.format("Received new raw log. json [%s]", json));
 
                 CockroachEventHttpRequestContainer container = objectMapper.readValue(URLDecoder.decode(json, "UTF-8"), CockroachEventHttpRequestContainer.class);
 
                 log.info(String.format("Unpacked [%s] cockroach events", container.getEvents().size()));
 
                 for ( ParamsContainer paramsContainer : container.getEvents() ) {
-                    log.info(String.format("Emiting new event log [%s]", paramsContainer));
+                    log.debug(String.format("Emiting new event log [%s]", paramsContainer));
                     outputCollector.emit(new Values(input.getValueByField("timestamp"),
                             platform,
                             paramsContainer.getParamsValues(),
@@ -72,6 +72,8 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
             // Notify problem to another stream
             log.error(String.format("Badly formatted data. platform [%s] json [%s]", platform, json));
         }
+
+        outputCollector.ack(input);
     }
 
     @Override

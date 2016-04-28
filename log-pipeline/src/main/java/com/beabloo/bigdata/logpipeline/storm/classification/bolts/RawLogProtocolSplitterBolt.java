@@ -39,6 +39,7 @@ public class RawLogProtocolSplitterBolt extends BaseRichBolt {
         } else {
             log.error(String.format("Unknown protocol [%s]", type));
         }
+        outputCollector.ack(input);
     }
 
     @Override

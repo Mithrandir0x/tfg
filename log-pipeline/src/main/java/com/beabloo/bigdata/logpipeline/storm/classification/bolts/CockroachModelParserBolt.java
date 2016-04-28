@@ -53,6 +53,8 @@ public class CockroachModelParserBolt extends BaseRichBolt {
             // @TODO Treat Excepcion
             ex.printStackTrace();
         }
+
+        outputCollector.ack(input);
     }
 
     @Override
