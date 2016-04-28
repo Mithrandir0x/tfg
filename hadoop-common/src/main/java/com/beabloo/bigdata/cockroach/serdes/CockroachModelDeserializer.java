@@ -10,11 +10,13 @@ import org.hibernate.validator.HibernateValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -90,7 +92,15 @@ public class CockroachModelDeserializer {
             for ( Map.Entry<String, Object> entry : extras.entrySet() ) {
                 logExtras.put(entry.getKey(), entry.getValue().toString());
             }
-            validator.validate(cockroachLog);
+
+            Set<ConstraintViolation<CockroachLog>> constraintViolations = validator.validate(cockroachLog);
+            if ( constraintViolations.size() > 0 ) {
+                for ( ConstraintViolation<CockroachLog> constraintViolation : constraintViolations ) {
+                    log.error(constraintViolation.getMessage());
+                }
+
+                return null;
+            }
 
             return cockroachLog;
         }

@@ -1,5 +1,6 @@
 package com.beabloo.bigdata.cockroach.serdes;
 
+import com.beabloo.bigdata.cockroach.model.CockroachLog;
 import com.beabloo.bigdata.cockroach.spec.Platform;
 import com.beabloo.bigdata.model.WifiPresenceLog;
 import org.junit.Test;
@@ -59,6 +60,17 @@ public class CockroachModelDeserializerTest {
         CockroachModelDeserializer cockroachModelDeserializer = new CockroachModelDeserializer();
 
         assertEquals("3", cockroachModelDeserializer.getEventId(paramsValue));
+    }
+
+    @Test
+    public void testPythonGeneratedParamsValue() throws Exception {
+        String paramsValue = "{\"organization_id\":39159,\"hotspot_id\":57469,\"oui\":\"a0:24:50\",\"sensor_id\":5171,\"power\":-24,\"start_event\":1461827857,\"md5_mac\":\"157e430ebd1d5cd54149e36f2cd04a42\",\"event\":3}";
+
+        CockroachModelDeserializer cockroachModelDeserializer = new CockroachModelDeserializer();
+        CockroachLog cockroachLog = cockroachModelDeserializer.deserialize("wifi", paramsValue, "{}");
+
+        assertNotNull(cockroachLog);
+        assertNotNull(cockroachLog.getOrganization());
     }
 
 }
