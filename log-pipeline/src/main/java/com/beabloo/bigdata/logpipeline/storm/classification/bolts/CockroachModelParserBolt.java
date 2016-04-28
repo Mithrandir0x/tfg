@@ -33,7 +33,7 @@ public class CockroachModelParserBolt extends BaseRichBolt {
     public void execute(Tuple input) {
         try {
             String platform = input.getStringByField("platform");
-            log.info("Received new event from platform [%s]", platform);
+            log.info(String.format("Received new event from platform [%s]", platform));
 
             CockroachLog cockroachLog = cockroachModelDeserialize.deserialize(platform,
                     input.getStringByField("paramsValues"),
