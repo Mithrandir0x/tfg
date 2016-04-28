@@ -46,6 +46,7 @@ public class CockroachModelDeserializer {
             String eventId = getEventId(paramsValues);
             Event event = Event.getEvent(eventId);
             if ( event != null ) {
+                log.info(String.format("Deserializing platform [%s] event [%s]", platform.name(), event.name()));
                 values = deserializers.get(ActivityDefinition.getActivityDefinition(platform, event)).deserialize(paramsValues, extraParams);
             } else {
                 log.warn(String.format("Unknown event id [%s]", eventId));
