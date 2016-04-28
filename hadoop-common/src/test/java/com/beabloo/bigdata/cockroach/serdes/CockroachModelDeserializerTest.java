@@ -69,8 +69,7 @@ public class CockroachModelDeserializerTest {
         CockroachModelDeserializer cockroachModelDeserializer = new CockroachModelDeserializer();
         CockroachLog cockroachLog = cockroachModelDeserializer.deserialize("wifi", paramsValue, "{}");
 
-        assertNotNull(cockroachLog);
-        assertNull(cockroachLog.getOrganization());
+        assertNull(cockroachLog);
     }
 
 }
