@@ -13,7 +13,7 @@ public class RawLogKafkaSpoutConfig extends SpoutConfig {
         super(new ZkHosts("nn.local.vm:2181,hive.local.vm:2181,hbase.local.vm:2181,nimbus.local.vm:2181"),
                 "raw-logs",
                 "/raw-logs",
-                UUID.randomUUID().toString());
+                "raw-log-consumer-1");
 
         this.scheme = new SchemeAsMultiScheme(new RawLogScheme());
     }
