@@ -16,6 +16,7 @@ public class RawLogKafkaSpoutConfig extends SpoutConfig {
                 "raw-log-consumer-1");
 
         this.scheme = new SchemeAsMultiScheme(new RawLogScheme());
+        this.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
     }
 
 }
