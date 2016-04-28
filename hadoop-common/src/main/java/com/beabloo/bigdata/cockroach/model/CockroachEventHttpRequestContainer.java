@@ -14,4 +14,17 @@ public class CockroachEventHttpRequestContainer {
         this.events = events;
     }
 
+    @Override
+    public String toString() {
+        if ( events != null ) {
+            StringBuilder stringBuilder = new StringBuilder();
+            for ( ParamsContainer paramsContainer : events ) {
+                stringBuilder.append(String.format(" [%s] ", paramsContainer));
+            }
+            return stringBuilder.toString();
+        } else {
+            return "";
+        }
+    }
+
 }

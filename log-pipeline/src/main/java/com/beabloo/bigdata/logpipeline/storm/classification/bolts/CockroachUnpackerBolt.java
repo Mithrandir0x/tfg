@@ -58,6 +58,7 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
                 log.info(String.format("Unpacked [%s] cockroach events", container.getEvents().size()));
 
                 for ( ParamsContainer paramsContainer : container.getEvents() ) {
+                    log.info(String.format("Emiting new event log [%s]", paramsContainer));
                     outputCollector.emit(new Values(input.getValueByField("timestamp"),
                             platform,
                             paramsContainer.getParamsValues(),
