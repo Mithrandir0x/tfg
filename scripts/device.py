@@ -33,10 +33,10 @@ def get_wifi_presence(organizations, hotspots, sensors):
     tx_power = random.randint(-126, -2)
     return {
         'event': events['presence'],
-        'organization_id': organization_id,
+        'organization': organization_id,
         'start_event': start_event,
-        'hotspot_id': hotspot_id,
-        'sensor_id': sensor_id,
+        'hotspot': hotspot_id,
+        'sensor': sensor_id,
         'md5_mac': md5_mac,
         'oui': oui,
         'power': tx_power
