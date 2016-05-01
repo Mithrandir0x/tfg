@@ -151,7 +151,7 @@ public class StatsdMetricConsumer implements IMetricsConsumer {
     }
 
     public void report(String s, int number) {
-        LOG.debug("reporting: {}={}", s, number);
+        LOG.info("reporting: {}={}", s, number);
         statsd.count(s, number);
     }
 
