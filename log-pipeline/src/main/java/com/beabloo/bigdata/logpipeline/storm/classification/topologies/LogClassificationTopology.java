@@ -33,10 +33,11 @@ public class LogClassificationTopology {
 
         try {
             // @TODO Statsd host should be parameterized
-            // Map statsdConfig = new HashMap();
-            // statsdConfig.put(StatsdMetricConsumer.STATSD_HOST, "stats.local.vm");
-            // statsdConfig.put(StatsdMetricConsumer.STATSD_PORT, 8125);
-            // statsdConfig.put(StatsdMetricConsumer.STATSD_PREFIX, "beabloo.storm.metrics.logclassification.");
+            Map statsdConfig = new HashMap();
+            statsdConfig.put(StatsdMetricConsumer.STATSD_HOST, "stats.local.vm");
+            statsdConfig.put(StatsdMetricConsumer.STATSD_PORT, 8125);
+            statsdConfig.put(StatsdMetricConsumer.STATSD_PREFIX, "beabloo.storm.metrics.logclassification.");
+            statsdConfig.put(Config.TOPOLOGY_NAME, args[0]);
 
             TopologyBuilder builder = new TopologyBuilder();
             Config config = new Config();
@@ -76,8 +77,9 @@ public class LogClassificationTopology {
                     .shuffleGrouping(CockroachModelParserBolt.ID);
 
             config.setNumWorkers(4);
-            config.registerMetricsConsumer(LoggingMetricsConsumer.class, 2);
-            // config.registerMetricsConsumer(StatsdMetricConsumer.class, statsdConfig, 2);
+            //config.registerMetricsConsumer(LoggingMetricsConsumer.class, 2);
+            // @TODO Statsd metrics consumer parallelization hint must be parameterized
+            config.registerMetricsConsumer(StatsdMetricConsumer.class, statsdConfig, 2);
 
             StormSubmitter.submitTopology(args[0], config, builder.createTopology());
         } catch ( Exception ex ) {
