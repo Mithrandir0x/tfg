@@ -35,10 +35,10 @@ public class RawLogProtocolSplitterBolt extends BaseRichBolt {
         outputCollector = collector;
 
         successCountMetric = new CountMetric();
-        context.registerMetric("RawLogProtocolSplitterBolt.success", successCountMetric, 1);
+        context.registerMetric("rawlog.success", successCountMetric, 1);
 
         errorCountMetric = new CountMetric();
-        context.registerMetric("RawLogProtocolSplitterBolt.error", successCountMetric, 1);
+        context.registerMetric("rawlog.error", successCountMetric, 1);
     }
 
     @Override

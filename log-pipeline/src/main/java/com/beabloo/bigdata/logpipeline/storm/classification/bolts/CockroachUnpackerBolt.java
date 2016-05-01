@@ -51,13 +51,13 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
         objectMapper.registerModule(simpleModule);
 
         platformSuccessMetric = new MultiCountMetric();
-        context.registerMetric("CockroachUnpackerBolt.success", platformSuccessMetric, 1);
+        context.registerMetric("unpak.success", platformSuccessMetric, 1);
 
         badFormattedJsonErrorMetric = new CountMetric();
-        context.registerMetric("CockroachUnpackerBolt.error.badjson", badFormattedJsonErrorMetric, 1);
+        context.registerMetric("unpak.error.badjson", badFormattedJsonErrorMetric, 1);
 
         exceptionErrorMetric = new CountMetric();
-        context.registerMetric("CockroachUnpackerBolt.error.exception", exceptionErrorMetric, 1);
+        context.registerMetric("unpak.error.exception", exceptionErrorMetric, 1);
     }
 
     @Override
