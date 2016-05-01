@@ -40,16 +40,7 @@ dependencies {
     compile "org.apache.hadoop:hadoop-hdfs:$hadoopVersion"
     compile "org.apache.zookeeper:zookeeper:$zookeeperVersion"
 
-    provided 'com.timgroup:java-statsd-client:2.0.0', {
-        ext {
-            fatJarExclude = true
-        }
-    }
-    provided "com.lookout:storm-metrics-statsd:1.0.0", {
-        ext {
-            fatJarExclude = true
-        }
-    }
+    compile 'com.timgroup:java-statsd-client:2.0.0'
 
     provided "org.slf4j:slf4j-api:+", {
         ext {

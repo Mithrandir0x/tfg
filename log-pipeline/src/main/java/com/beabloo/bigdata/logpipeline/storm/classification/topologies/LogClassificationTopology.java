@@ -4,8 +4,8 @@ import com.beabloo.bigdata.logpipeline.storm.classification.bolts.CockroachModel
 import com.beabloo.bigdata.logpipeline.storm.classification.bolts.CockroachUnpackerBolt;
 import com.beabloo.bigdata.logpipeline.storm.classification.bolts.RawLogProtocolSplitterBolt;
 import com.beabloo.bigdata.logpipeline.storm.classification.bolts.hdfs.HdfsLogSelector;
+import com.beabloo.bigdata.logpipeline.storm.classification.metrics.StatsdMetricConsumer;
 import com.beabloo.bigdata.logpipeline.storm.classification.spouts.RawLogKafkaSpout;
-import com.endgame.storm.metrics.statsd.StatsdMetricConsumer;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.hdfs.bolt.HdfsBolt;
