@@ -51,9 +51,11 @@ public class CockroachModelDeserializer {
                 log.info(String.format("Deserializing platform [%s] event [%s]", platform.name(), event.name()));
                 values = deserializers.get(ActivityDefinition.getActivityDefinition(platform, event)).deserialize(paramsValues, extraParams);
             } else {
+                // @TODO Throw specific exception
                 log.warn(String.format("Unknown event id [%s]", eventId));
             }
         } else {
+            // @TODO Throw specific exception
             log.warn(String.format("Unknown platform [%s]", platformName));
         }
 
@@ -99,6 +101,7 @@ public class CockroachModelDeserializer {
                     log.error(constraintViolation.getMessage());
                 }
 
+                // @TODO Throw specific exception
                 return null;
             }
 

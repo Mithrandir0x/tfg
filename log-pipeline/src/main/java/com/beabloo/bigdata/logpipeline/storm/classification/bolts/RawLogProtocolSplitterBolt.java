@@ -1,5 +1,6 @@
 package com.beabloo.bigdata.logpipeline.storm.classification.bolts;
 
+import org.apache.storm.metric.api.CountMetric;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -25,9 +26,19 @@ public class RawLogProtocolSplitterBolt extends BaseRichBolt {
 
     private OutputCollector outputCollector;
 
+    // @TODO This metric should be done for each protocol
+    transient CountMetric successCountMetric;
+    transient CountMetric errorCountMetric;
+
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
         outputCollector = collector;
+
+        successCountMetric = new CountMetric();
+        context.registerMetric("RawLogProtocolSplitterBolt.success", successCountMetric, 1);
+
+        errorCountMetric = new CountMetric();
+        context.registerMetric("RawLogProtocolSplitterBolt.error", successCountMetric, 1);
     }
 
     @Override
@@ -36,8 +47,12 @@ public class RawLogProtocolSplitterBolt extends BaseRichBolt {
         if ( type.startsWith("http") && cockroachUri.matcher(type).matches() ) {
             log.info(String.format("Found new raw log for cockroach..."));
             outputCollector.emit(HTTP_COCKROACH_STREAM, input.getValues());
+
+            successCountMetric.incr();
         } else {
             log.error(String.format("Unknown protocol [%s]", type));
+
+            errorCountMetric.incr();
         }
         outputCollector.ack(input);
     }

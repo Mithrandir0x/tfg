@@ -5,6 +5,7 @@ import com.beabloo.bigdata.logpipeline.storm.classification.bolts.CockroachUnpac
 import com.beabloo.bigdata.logpipeline.storm.classification.bolts.RawLogProtocolSplitterBolt;
 import com.beabloo.bigdata.logpipeline.storm.classification.bolts.hdfs.HdfsLogSelector;
 import com.beabloo.bigdata.logpipeline.storm.classification.spouts.RawLogKafkaSpout;
+import com.endgame.storm.metrics.statsd.StatsdMetricConsumer;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.hdfs.bolt.HdfsBolt;
@@ -15,7 +16,11 @@ import org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy;
 import org.apache.storm.hdfs.bolt.rotation.TimedRotationPolicy;
 import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
 import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
+import org.apache.storm.metric.LoggingMetricsConsumer;
 import org.apache.storm.topology.TopologyBuilder;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class LogClassificationTopology {
 
@@ -27,6 +32,12 @@ public class LogClassificationTopology {
         }
 
         try {
+            // @TODO Statsd host should be parameterized
+            // Map statsdConfig = new HashMap();
+            // statsdConfig.put(StatsdMetricConsumer.STATSD_HOST, "stats.local.vm");
+            // statsdConfig.put(StatsdMetricConsumer.STATSD_PORT, 8125);
+            // statsdConfig.put(StatsdMetricConsumer.STATSD_PREFIX, "beabloo.storm.metrics.logclassification.");
+
             TopologyBuilder builder = new TopologyBuilder();
             Config config = new Config();
 
@@ -65,6 +76,9 @@ public class LogClassificationTopology {
                     .shuffleGrouping(CockroachModelParserBolt.ID);
 
             config.setNumWorkers(4);
+            config.registerMetricsConsumer(LoggingMetricsConsumer.class, 2);
+            // config.registerMetricsConsumer(StatsdMetricConsumer.class, statsdConfig, 2);
+
             StormSubmitter.submitTopology(args[0], config, builder.createTopology());
         } catch ( Exception ex ) {
             ex.printStackTrace();

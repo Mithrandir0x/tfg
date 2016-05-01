@@ -2,6 +2,8 @@ package com.beabloo.bigdata.logpipeline.storm.classification.bolts;
 
 import com.beabloo.bigdata.cockroach.model.CockroachLog;
 import com.beabloo.bigdata.cockroach.serdes.CockroachModelDeserializer;
+import org.apache.storm.metric.api.CountMetric;
+import org.apache.storm.metric.api.MultiCountMetric;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -23,10 +25,23 @@ public class CockroachModelParserBolt extends BaseRichBolt {
     private OutputCollector outputCollector;
     private CockroachModelDeserializer cockroachModelDeserialize;
 
+    transient MultiCountMetric platformSuccessMetric;
+    transient CountMetric badFormattedJsonErrorMetric;
+    transient CountMetric exceptionErrorMetric;
+
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
         outputCollector = collector;
         cockroachModelDeserialize = new CockroachModelDeserializer();
+
+        platformSuccessMetric = new MultiCountMetric();
+        context.registerMetric("CockroachModelParserBolt.success", platformSuccessMetric, 1);
+
+        badFormattedJsonErrorMetric = new CountMetric();
+        context.registerMetric("CockroachModelParserBolt.error.badjson", badFormattedJsonErrorMetric, 1);
+
+        exceptionErrorMetric = new CountMetric();
+        context.registerMetric("CockroachModelParserBolt.error.exception", exceptionErrorMetric, 1);
     }
 
     @Override
@@ -46,12 +61,18 @@ public class CockroachModelParserBolt extends BaseRichBolt {
                         cockroachLog,
                         cockroachLog.getStartEvent(),
                         input.getLongByField("timestamp")));
+
+                platformSuccessMetric.scope(platform).incr();
             } else {
                 log.error("Invalid cockroach log received");
+
+                badFormattedJsonErrorMetric.incr();
             }
         } catch ( Exception ex ) {
-            // @TODO Treat Excepcion
+            // @TODO Treat Exception nicely
             ex.printStackTrace();
+
+            exceptionErrorMetric.incr();
         }
 
         outputCollector.ack(input);

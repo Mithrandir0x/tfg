@@ -3,6 +3,8 @@ package com.beabloo.bigdata.logpipeline.storm.classification.bolts;
 import com.beabloo.bigdata.cockroach.model.CockroachEventHttpRequestContainer;
 import com.beabloo.bigdata.cockroach.model.ParamsContainer;
 import com.beabloo.bigdata.cockroach.serdes.ParamsContainerFastDeserializer;
+import org.apache.storm.metric.api.CountMetric;
+import org.apache.storm.metric.api.MultiCountMetric;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -34,6 +36,10 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
     private OutputCollector outputCollector;
     private ObjectMapper objectMapper;
 
+    transient MultiCountMetric platformSuccessMetric;
+    transient CountMetric badFormattedJsonErrorMetric;
+    transient CountMetric exceptionErrorMetric;
+
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
         outputCollector = collector;
@@ -43,6 +49,15 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
         SimpleModule simpleModule = new SimpleModule("UNK", Version.unknownVersion());
         simpleModule.addDeserializer(ParamsContainer.class, new ParamsContainerFastDeserializer());
         objectMapper.registerModule(simpleModule);
+
+        platformSuccessMetric = new MultiCountMetric();
+        context.registerMetric("CockroachUnpackerBolt.success", platformSuccessMetric, 1);
+
+        badFormattedJsonErrorMetric = new CountMetric();
+        context.registerMetric("CockroachUnpackerBolt.error.badjson", badFormattedJsonErrorMetric, 1);
+
+        exceptionErrorMetric = new CountMetric();
+        context.registerMetric("CockroachUnpackerBolt.error.exception", exceptionErrorMetric, 1);
     }
 
     @Override
@@ -64,13 +79,18 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
                             paramsContainer.getParamsValues(),
                             paramsContainer.getExtraParams()));
                 }
+
+                platformSuccessMetric.scope(platform).incrBy(container.getEvents().size());
             } catch ( Exception ex ) {
-                // @TODO Treat Excepcion
+                // @TODO Treat Exception nicely
                 ex.printStackTrace();
+
+                exceptionErrorMetric.incr();
             }
         } else {
             // Notify problem to another stream
             log.error(String.format("Badly formatted data. platform [%s] json [%s]", platform, json));
+            badFormattedJsonErrorMetric.incr();
         }
 
         outputCollector.ack(input);

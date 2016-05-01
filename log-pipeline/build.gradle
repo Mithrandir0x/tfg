@@ -7,6 +7,12 @@ project.ext {
     aspectjVersion = '1.8.4'
 }
 
+repositories {
+    maven {
+        url = 'http://dl.bintray.com/lookout/systems'
+    }
+}
+
 buildscript {
     dependencies {
         classpath 'eu.appsatori:gradle-fatjar-plugin:0.3'
@@ -33,6 +39,13 @@ dependencies {
     compile "org.apache.hadoop:hadoop-client:$hadoopVersion"
     compile "org.apache.hadoop:hadoop-hdfs:$hadoopVersion"
     compile "org.apache.zookeeper:zookeeper:$zookeeperVersion"
+
+    compile 'com.timgroup:java-statsd-client:2.0.0'
+    provided "com.lookout:storm-metrics-statsd:1.0.0", {
+        ext {
+            fatJarExclude = true
+        }
+    }
 
     provided "org.slf4j:slf4j-api:+", {
         ext {
