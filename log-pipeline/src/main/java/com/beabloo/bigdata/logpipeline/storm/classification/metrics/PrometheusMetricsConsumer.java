@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 
 public class PrometheusMetricsConsumer implements IMetricsConsumer {
 
@@ -33,14 +34,28 @@ public class PrometheusMetricsConsumer implements IMetricsConsumer {
         CollectorRegistry registry = new CollectorRegistry();
 
         for ( DataPoint dataPoint : dataPoints ) {
-            String metricName = String.format("%s_%s_%s_%s", namespace, taskInfo.srcWorkerHost, "task" + taskInfo.srcTaskId, dataPoint.name).replaceAll(invalidMetricChars, "_");
-
-            Gauge metric = Gauge.build().name(metricName).help("Storm metric").register(registry);
-
+            String metricName;
             if ( dataPoint.value instanceof Long ) {
+                metricName = String.format("%s_%s_%s_%s", namespace, taskInfo.srcWorkerHost, "task" + taskInfo.srcTaskId, dataPoint.name).replaceAll(invalidMetricChars, "_");
+
+                Gauge metric = Gauge.build().name(metricName).help("Storm metric").register(registry);
                 metric.set((long) dataPoint.value);
+
+                log.info(String.format("Processing metric [%s] with value [%s]", metricName, dataPoint.value));
             } else if ( dataPoint.value instanceof Map ) {
-                log.warn("Maps currently not supported");
+                Map map = (Map) dataPoint.value;
+                for ( Object key : map.keySet()) {
+                    Object value = map.get(key);
+                    if ( value instanceof Number ) {
+                        metricName = String.format("%s_%s_%s_%s", namespace, taskInfo.srcWorkerHost, "task" + taskInfo.srcTaskId, value.toString()).replaceAll(invalidMetricChars, "_");
+                        Gauge metric = Gauge.build().name(metricName).help("Storm metric").register(registry);
+                        metric.set((long) value);
+
+                        log.info(String.format("Processing metric [%s] with value [%s]", metricName, value));
+                    } else {
+                        log.warn("Unknown metric type inside map");
+                    }
+                }
             } else {
                 log.warn("Unknown kind of metric");
             }
