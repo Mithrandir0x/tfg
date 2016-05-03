@@ -48,9 +48,15 @@ public class PrometheusMetricsConsumer implements IMetricsConsumer {
                 for ( Object key : map.keySet()) {
                     Object value = map.get(key);
                     if ( value instanceof Number ) {
-                        metricName = String.format("%s_%s_%s", namespace, "task" + taskInfo.srcTaskId, value.toString()).replaceAll(invalidMetricChars, "_");
+                        metricName = String.format("%s_%s_%s", namespace, "task" + taskInfo.srcTaskId, key.toString()).replaceAll(invalidMetricChars, "_");
                         Gauge metric = Gauge.build().name(metricName).help("Storm metric").register(registry);
-                        metric.set((long) value);
+                        if ( value instanceof Integer ) {
+                            metric.set((int) value);
+                        } else if ( value instanceof Long ) {
+                            metric.set((long) value);
+                        } else {
+                            log.warn("Unknown value passed in map [%s]", value.toString());
+                        }
 
                         log.info(String.format("Processing metric [%s] with value [%s]", metricName, value));
                     } else {
