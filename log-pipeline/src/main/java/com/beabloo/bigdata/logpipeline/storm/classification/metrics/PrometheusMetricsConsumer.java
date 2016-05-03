@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -47,7 +48,7 @@ public class PrometheusMetricsConsumer implements IMetricsConsumer {
                 for ( Object key : map.keySet()) {
                     Object value = map.get(key);
                     if ( value instanceof Number ) {
-                        metricName = String.format("%s_%s_%s_%s", namespace, taskInfo.srcWorkerHost, "task" + taskInfo.srcTaskId, value.toString()).replaceAll(invalidMetricChars, "_");
+                        metricName = String.format("%s_%s_%s", namespace, "task" + taskInfo.srcTaskId, value.toString()).replaceAll(invalidMetricChars, "_");
                         Gauge metric = Gauge.build().name(metricName).help("Storm metric").register(registry);
                         metric.set((long) value);
 
@@ -62,7 +63,9 @@ public class PrometheusMetricsConsumer implements IMetricsConsumer {
         }
 
         try {
-            pushGateway.pushAdd(registry, namespace);
+            Map<String, String> groupingKey = new HashMap<>();
+            groupingKey.put("instance", String.format("%s:%s", taskInfo.srcWorkerHost, taskInfo.srcWorkerPort));
+            pushGateway.pushAdd(registry, namespace, groupingKey);
         } catch ( Exception ex ) {
             log.error(String.format("Error while trying to push metrics to the gateway [%s]", ex.getMessage()), ex);
         }
