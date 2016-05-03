@@ -17,6 +17,8 @@ public class PrometheusMetricsConsumer implements IMetricsConsumer {
     // @TODO Parameterize the prometheus metric's namespace
     private static final String namespace = "storm_logpipeline";
 
+    public static final String invalidMetricChars = "[.\\-\\\\/:]+";
+
     private static final Logger log = LoggerFactory.getLogger(PrometheusMetricsConsumer.class);
 
     private PushGateway pushGateway;
@@ -31,7 +33,7 @@ public class PrometheusMetricsConsumer implements IMetricsConsumer {
         CollectorRegistry registry = new CollectorRegistry();
 
         for ( DataPoint dataPoint : dataPoints ) {
-            String metricName = String.format("%s_%s_%s_%s", namespace, taskInfo.srcWorkerHost, "task" + taskInfo.srcTaskId, dataPoint.name).replaceAll("[.-\\/:]+", "_");
+            String metricName = String.format("%s_%s_%s_%s", namespace, taskInfo.srcWorkerHost, "task" + taskInfo.srcTaskId, dataPoint.name).replaceAll(invalidMetricChars, "_");
 
             Gauge metric = Gauge.build().name(metricName).help("Storm metric").register(registry);
 
