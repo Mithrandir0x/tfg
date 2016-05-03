@@ -48,7 +48,7 @@ public class PrometheusMetricsConsumer implements IMetricsConsumer {
                 for ( Object key : map.keySet()) {
                     Object value = map.get(key);
                     if ( value instanceof Number ) {
-                        metricName = String.format("%s_%s_%s", namespace, "task" + taskInfo.srcTaskId, key.toString()).replaceAll(invalidMetricChars, "_");
+                        metricName = String.format("%s_%s_%s_%s", namespace, "task" + taskInfo.srcTaskId, key.toString(), dataPoint.name).replaceAll(invalidMetricChars, "_");
                         Gauge metric = Gauge.build().name(metricName).help("Storm metric").register(registry);
                         if ( value instanceof Integer ) {
                             metric.set((int) value);
