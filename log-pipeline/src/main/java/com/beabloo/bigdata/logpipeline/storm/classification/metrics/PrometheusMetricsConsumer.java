@@ -31,8 +31,8 @@ public class PrometheusMetricsConsumer implements IMetricsConsumer {
         CollectorRegistry registry = new CollectorRegistry();
 
         for ( DataPoint dataPoint : dataPoints ) {
-            String host = taskInfo.srcWorkerHost.replace(".", "_");
-            String metricName = String.format("%s_%s_%s", host, "task" + taskInfo.srcTaskId, dataPoint.name);
+            String host = taskInfo.srcWorkerHost.replace(".", "_").replace("-", "_");
+            String metricName = String.format("%s_%s_%s_%s", namespace, host, "task" + taskInfo.srcTaskId, dataPoint.name);
 
             Gauge metric = Gauge.build().name(metricName).help("Storm metric").register(registry);
 
@@ -46,7 +46,7 @@ public class PrometheusMetricsConsumer implements IMetricsConsumer {
         }
 
         try {
-            pushGateway.push(registry, namespace);
+            pushGateway.pushAdd(registry, namespace);
         } catch ( Exception ex ) {
             log.error("Error while trying to push metrics to the gateway");
         }
