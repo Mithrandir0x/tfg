@@ -31,10 +31,11 @@ public class PrometheusMetricsConsumer implements IMetricsConsumer {
         CollectorRegistry registry = new CollectorRegistry();
 
         for ( DataPoint dataPoint : dataPoints ) {
-            Gauge metric = Gauge.build().name(dataPoint.name).help("Storm metric").register(registry);
+            String metricName = String.format("%s_%s_%s_%s",taskInfo.srcWorkerHost, "" + taskInfo.srcTaskId, taskInfo.srcComponentId, dataPoint.name);
+
+            Gauge metric = Gauge.build().name(metricName).help("Storm metric").register(registry);
 
             if ( dataPoint.value instanceof Long ) {
-                metric.labels(taskInfo.srcWorkerHost, "" + taskInfo.srcTaskId, taskInfo.srcComponentId);
                 metric.set((long) dataPoint.value);
             } else if ( dataPoint.value instanceof Map ) {
                 log.warn("Maps currently not supported");
