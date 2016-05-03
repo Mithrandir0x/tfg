@@ -40,7 +40,8 @@ dependencies {
     compile "org.apache.hadoop:hadoop-hdfs:$hadoopVersion"
     compile "org.apache.zookeeper:zookeeper:$zookeeperVersion"
 
-    compile 'com.timgroup:java-statsd-client:2.0.0'
+    compile "io.prometheus:simpleclient:$prometheusVersion"
+    compile "io.prometheus:simpleclient_pushgateway:$prometheusVersion"
 
     provided "org.slf4j:slf4j-api:+", {
         ext {

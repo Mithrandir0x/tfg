@@ -4,7 +4,7 @@ import com.beabloo.bigdata.logpipeline.storm.classification.bolts.CockroachModel
 import com.beabloo.bigdata.logpipeline.storm.classification.bolts.CockroachUnpackerBolt;
 import com.beabloo.bigdata.logpipeline.storm.classification.bolts.RawLogProtocolSplitterBolt;
 import com.beabloo.bigdata.logpipeline.storm.classification.bolts.hdfs.HdfsLogSelector;
-import com.beabloo.bigdata.logpipeline.storm.classification.metrics.StatsdMetricConsumer;
+import com.beabloo.bigdata.logpipeline.storm.classification.metrics.PrometheusMetricsConsumer;
 import com.beabloo.bigdata.logpipeline.storm.classification.spouts.RawLogKafkaSpout;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
@@ -13,32 +13,21 @@ import org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat;
 import org.apache.storm.hdfs.bolt.format.FileNameFormat;
 import org.apache.storm.hdfs.bolt.rotation.FileRotationPolicy;
 import org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy;
-import org.apache.storm.hdfs.bolt.rotation.TimedRotationPolicy;
 import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
 import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
 import org.apache.storm.metric.LoggingMetricsConsumer;
 import org.apache.storm.topology.TopologyBuilder;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class LogClassificationTopology {
 
     public static void main(String[] args) {
 
         if ( args.length != 1 ) {
-            System.out.println(String.format(" usage: THE FUCK YOU'RE TALKING ABOUT?"));
+            System.out.println(String.format(" usage: To be disclosed"));
             return;
         }
 
         try {
-            // @TODO Statsd host should be parameterized
-            Map statsdConfig = new HashMap();
-            statsdConfig.put(StatsdMetricConsumer.STATSD_HOST, "stats.local.vm");
-            statsdConfig.put(StatsdMetricConsumer.STATSD_PORT, 8125);
-            statsdConfig.put(StatsdMetricConsumer.STATSD_PREFIX, "beabloo.storm.metrics.logclassification.");
-            statsdConfig.put(Config.TOPOLOGY_NAME, args[0]);
-
             TopologyBuilder builder = new TopologyBuilder();
             Config config = new Config();
 
@@ -67,6 +56,7 @@ public class LogClassificationTopology {
             FileNameFormat fileNameFormat = new DefaultFileNameFormat().withPath("/engine2_big_data/cockroach/");
 
             HdfsBolt hdfsBolt = new HdfsBolt()
+                    // @TODO The NameNode server should be parameterized
                     .withFsUrl("hdfs://nn.local.vm:8020")
                     .withFileNameFormat(fileNameFormat)
                     .withRecordFormat(HdfsLogSelector.getHdfsLogFormat())
@@ -77,9 +67,7 @@ public class LogClassificationTopology {
                     .shuffleGrouping(CockroachModelParserBolt.ID);
 
             config.setNumWorkers(4);
-            //config.registerMetricsConsumer(LoggingMetricsConsumer.class, 2);
-            // @TODO Statsd metrics consumer parallelization hint must be parameterized
-            config.registerMetricsConsumer(StatsdMetricConsumer.class, statsdConfig, 2);
+            config.registerMetricsConsumer(PrometheusMetricsConsumer.class, 2);
 
             StormSubmitter.submitTopology(args[0], config, builder.createTopology());
         } catch ( Exception ex ) {

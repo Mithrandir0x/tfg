@@ -35,13 +35,13 @@ public class CockroachModelParserBolt extends BaseRichBolt {
         cockroachModelDeserialize = new CockroachModelDeserializer();
 
         platformSuccessMetric = new MultiCountMetric();
-        context.registerMetric("parser.success", platformSuccessMetric, 1);
+        context.registerMetric("parser_success", platformSuccessMetric, 1);
 
         badFormattedJsonErrorMetric = new CountMetric();
-        context.registerMetric("parser.error.badjson", badFormattedJsonErrorMetric, 1);
+        context.registerMetric("parser_error_badjson", badFormattedJsonErrorMetric, 1);
 
         exceptionErrorMetric = new CountMetric();
-        context.registerMetric("parser.error.exception", exceptionErrorMetric, 1);
+        context.registerMetric("parser_error_exception", exceptionErrorMetric, 1);
     }
 
     @Override
