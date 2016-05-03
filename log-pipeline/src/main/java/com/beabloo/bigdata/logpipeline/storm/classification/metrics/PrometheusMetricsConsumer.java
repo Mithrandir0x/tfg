@@ -48,7 +48,7 @@ public class PrometheusMetricsConsumer implements IMetricsConsumer {
         try {
             pushGateway.pushAdd(registry, namespace);
         } catch ( Exception ex ) {
-            log.error("Error while trying to push metrics to the gateway");
+            log.error(String.format("Error while trying to push metrics to the gateway [%s]", ex.getMessage()), ex);
         }
     }
 
