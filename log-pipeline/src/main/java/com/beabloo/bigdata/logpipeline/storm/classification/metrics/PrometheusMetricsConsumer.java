@@ -31,7 +31,8 @@ public class PrometheusMetricsConsumer implements IMetricsConsumer {
         CollectorRegistry registry = new CollectorRegistry();
 
         for ( DataPoint dataPoint : dataPoints ) {
-            String metricName = String.format("%s_%s_%s_%s",taskInfo.srcWorkerHost.replace(".", "_"), "task" + taskInfo.srcTaskId, dataPoint.name);
+            String host = taskInfo.srcWorkerHost.replace(".", "_");
+            String metricName = String.format("%s_%s_%s", host, "task" + taskInfo.srcTaskId, dataPoint.name);
 
             Gauge metric = Gauge.build().name(metricName).help("Storm metric").register(registry);
 
