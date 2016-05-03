@@ -31,9 +31,10 @@ public class PrometheusMetricsConsumer implements IMetricsConsumer {
         CollectorRegistry registry = new CollectorRegistry();
 
         for ( DataPoint dataPoint : dataPoints ) {
-            Gauge metric = Gauge.build().name(dataPoint.name).register(registry);
+            Gauge metric = Gauge.build().name(dataPoint.name).help("").register(registry);
 
             if ( dataPoint.value instanceof Long ) {
+                metric.labels(taskInfo.srcWorkerHost, "" + taskInfo.srcTaskId, taskInfo.srcComponentId);
                 metric.set((long) dataPoint.value);
             } else if ( dataPoint.value instanceof Map ) {
                 log.warn("Maps currently not supported");
