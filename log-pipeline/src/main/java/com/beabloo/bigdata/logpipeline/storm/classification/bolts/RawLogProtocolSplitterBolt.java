@@ -56,6 +56,7 @@ public class RawLogProtocolSplitterBolt extends BaseRichBolt {
         successCountMetric = Counter.build()
                 .name("rawlog_success")
                 .help("RawLogProtocolSplitterBolt metric count")
+                .labelNames("protocol")
                 .register(collectorRegistry);
 
         errorCountMetric = Counter.build()
