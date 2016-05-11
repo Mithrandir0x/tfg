@@ -1,14 +1,13 @@
 package com.beabloo.bigdata.model;
 
-import com.beabloo.bigdata.cockroach.aspects.Activity;
+import com.beabloo.bigdata.cockroach.annotations.Activity;
 import com.beabloo.bigdata.cockroach.model.CockroachLog;
 import com.beabloo.bigdata.cockroach.spec.Event;
-import com.beabloo.bigdata.cockroach.aspects.Parameter;
+import com.beabloo.bigdata.cockroach.annotations.Parameter;
 import com.beabloo.bigdata.cockroach.spec.Platform;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.validation.constraints.NotNull;
-import java.util.Map;
 
 @Activity(platform = Platform.WIFI, event = Event.PRESENCE)
 @JsonIgnoreProperties(ignoreUnknown = true)

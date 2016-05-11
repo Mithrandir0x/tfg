@@ -36,9 +36,9 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
     private OutputCollector outputCollector;
     private ObjectMapper objectMapper;
 
-    transient MultiCountMetric platformSuccessMetric;
-    transient CountMetric badFormattedJsonErrorMetric;
-    transient CountMetric exceptionErrorMetric;
+//    transient MultiCountMetric platformSuccessMetric;
+//    transient CountMetric badFormattedJsonErrorMetric;
+//    transient CountMetric exceptionErrorMetric;
 
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
@@ -50,14 +50,14 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
         simpleModule.addDeserializer(ParamsContainer.class, new ParamsContainerFastDeserializer());
         objectMapper.registerModule(simpleModule);
 
-        platformSuccessMetric = new MultiCountMetric();
-        context.registerMetric("unpak_success", platformSuccessMetric, 1);
-
-        badFormattedJsonErrorMetric = new CountMetric();
-        context.registerMetric("unpak_error_badjson", badFormattedJsonErrorMetric, 1);
-
-        exceptionErrorMetric = new CountMetric();
-        context.registerMetric("unpak_error_exception", exceptionErrorMetric, 1);
+//        platformSuccessMetric = new MultiCountMetric();
+//        context.registerMetric("unpak_success", platformSuccessMetric, 1);
+//
+//        badFormattedJsonErrorMetric = new CountMetric();
+//        context.registerMetric("unpak_error_badjson", badFormattedJsonErrorMetric, 1);
+//
+//        exceptionErrorMetric = new CountMetric();
+//        context.registerMetric("unpak_error_exception", exceptionErrorMetric, 1);
     }
 
     @Override
@@ -80,17 +80,17 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
                             paramsContainer.getExtraParams()));
                 }
 
-                platformSuccessMetric.scope(platform).incrBy(container.getEvents().size());
+//                platformSuccessMetric.scope(platform).incrBy(container.getEvents().size());
             } catch ( Exception ex ) {
                 // @TODO Treat Exception nicely
                 ex.printStackTrace();
 
-                exceptionErrorMetric.incr();
+//                exceptionErrorMetric.incr();
             }
         } else {
             // Notify problem to another stream
             log.error(String.format("Badly formatted data. platform [%s] json [%s]", platform, json));
-            badFormattedJsonErrorMetric.incr();
+//            badFormattedJsonErrorMetric.incr();
         }
 
         outputCollector.ack(input);

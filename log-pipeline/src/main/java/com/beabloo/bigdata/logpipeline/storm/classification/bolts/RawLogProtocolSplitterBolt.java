@@ -1,6 +1,10 @@
 package com.beabloo.bigdata.logpipeline.storm.classification.bolts;
 
-import org.apache.storm.metric.api.CountMetric;
+import com.beabloo.monitoring.storm.aspects.StormBoltMetricsGenerator;
+import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.Counter;
+import io.prometheus.client.Histogram;
+import io.prometheus.client.exporter.PushGateway;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -10,9 +14,11 @@ import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+@StormBoltMetricsGenerator
 public class RawLogProtocolSplitterBolt extends BaseRichBolt {
 
     private static final Logger log = LoggerFactory.getLogger(RawLogProtocolSplitterBolt.class);
@@ -26,35 +32,82 @@ public class RawLogProtocolSplitterBolt extends BaseRichBolt {
 
     private OutputCollector outputCollector;
 
+    transient PushGateway pushGateway;
+    transient CollectorRegistry collectorRegistry;
+    transient String taskId;
+
+    transient Counter successCountMetric;
+    transient Counter errorCountMetric;
+    transient Histogram executionDurationHistogram;
+
     // @TODO This metric should be done for each protocol
-    transient CountMetric successCountMetric;
-    transient CountMetric errorCountMetric;
+//     transient CountMetric successCountMetric;
+//     transient CountMetric errorCountMetric;
 
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
         outputCollector = collector;
 
-        successCountMetric = new CountMetric();
-        context.registerMetric("rawlog_success", successCountMetric, 1);
+        taskId = "" + context.getThisTaskId();
 
-        errorCountMetric = new CountMetric();
-        context.registerMetric("rawlog_error", successCountMetric, 1);
+        pushGateway = new PushGateway("stats.local.vm:9091");
+        collectorRegistry = new CollectorRegistry();
+
+        successCountMetric = Counter.build()
+                .name("rawlog_success")
+                .help("RawLogProtocolSplitterBolt metric count")
+                .register(collectorRegistry);
+
+        errorCountMetric = Counter.build()
+                .name("rawlog_error")
+                .help("RawLogProtocolSplitterBolt metric count")
+                .register(collectorRegistry);
+
+        executionDurationHistogram = Histogram.build()
+                .name("execution_duration")
+                .help("RawLogProtocolSplitterBolt metric count")
+                .register(collectorRegistry);
+
+//         successCountMetric = new CountMetric();
+//         context.registerMetric("rawlog_success", successCountMetric, 1);
+//
+//         errorCountMetric = new CountMetric();
+//         context.registerMetric("rawlog_error", successCountMetric, 1);
     }
 
     @Override
     public void execute(Tuple input) {
-        String type = input.getStringByField("type");
-        if ( type.startsWith("http") && cockroachUri.matcher(type).matches() ) {
-            log.info(String.format("Found new raw log for cockroach..."));
-            outputCollector.emit(HTTP_COCKROACH_STREAM, input.getValues());
+        Histogram.Timer timer = executionDurationHistogram.startTimer();
 
-            successCountMetric.incr();
-        } else {
-            log.error(String.format("Unknown protocol [%s]", type));
+        try {
+            String type = input.getStringByField("type");
+            if (type.startsWith("http") && cockroachUri.matcher(type).matches()) {
+                log.info(String.format("Found new raw log for cockroach..."));
+                outputCollector.emit(HTTP_COCKROACH_STREAM, input.getValues());
 
-            errorCountMetric.incr();
+                successCountMetric.labels("cockroach").inc();
+            } else {
+                log.error(String.format("Unknown protocol [%s]", type));
+
+                successCountMetric.labels("unknown").inc();
+            }
+        } catch ( Exception ex ) {
+            log.error(ex.getMessage(), ex);
+
+            errorCountMetric.inc();
+        } finally {
+            timer.observeDuration();
+
+            outputCollector.ack(input);
         }
-        outputCollector.ack(input);
+
+        try {
+            Map<String, String> groupingKey = new HashMap<>();
+            groupingKey.put("instance", taskId);
+            pushGateway.pushAdd(collectorRegistry, "storm_logpipeline", groupingKey);
+        } catch ( Exception ex ) {
+            log.error("Error while trying to send metrics to push gateway", ex);
+        }
     }
 
     @Override

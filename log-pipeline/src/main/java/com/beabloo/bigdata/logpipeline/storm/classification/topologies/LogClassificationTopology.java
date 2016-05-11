@@ -67,7 +67,7 @@ public class LogClassificationTopology {
                     .shuffleGrouping(CockroachModelParserBolt.ID);
 
             config.setNumWorkers(4);
-            config.registerMetricsConsumer(PrometheusMetricsConsumer.class, 1);
+//            config.registerMetricsConsumer(PrometheusMetricsConsumer.class, 1);
 
             StormSubmitter.submitTopology(args[0], config, builder.createTopology());
         } catch ( Exception ex ) {

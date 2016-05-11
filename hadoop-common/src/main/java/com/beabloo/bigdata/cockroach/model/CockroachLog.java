@@ -1,6 +1,6 @@
 package com.beabloo.bigdata.cockroach.model;
 
-import com.beabloo.bigdata.cockroach.aspects.Parameter;
+import com.beabloo.bigdata.cockroach.annotations.Parameter;
 import com.beabloo.bigdata.cockroach.spec.ActivityDefinition;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

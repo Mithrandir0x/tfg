@@ -14,12 +14,22 @@ repositories {
 }
 
 buildscript {
+    repositories {
+        maven {
+            url "https://maven.eveoh.nl/content/repositories/releases"
+        }
+    }
+
     dependencies {
         classpath 'eu.appsatori:gradle-fatjar-plugin:0.3'
+
+        // aspectj
+        classpath "nl.eveoh:gradle-aspectj:1.6"
     }
 }
 
 apply plugin: 'eu.appsatori.fatjar'
+apply plugin: 'aspectj'
 
 configurations {
     all*.exclude group: 'org.slf4j', module: 'slf4j-log4j12'

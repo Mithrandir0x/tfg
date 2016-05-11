@@ -25,23 +25,23 @@ public class CockroachModelParserBolt extends BaseRichBolt {
     private OutputCollector outputCollector;
     private CockroachModelDeserializer cockroachModelDeserialize;
 
-    transient MultiCountMetric platformSuccessMetric;
-    transient CountMetric badFormattedJsonErrorMetric;
-    transient CountMetric exceptionErrorMetric;
+//    transient MultiCountMetric platformSuccessMetric;
+//    transient CountMetric badFormattedJsonErrorMetric;
+//    transient CountMetric exceptionErrorMetric;
 
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
         outputCollector = collector;
         cockroachModelDeserialize = new CockroachModelDeserializer();
 
-        platformSuccessMetric = new MultiCountMetric();
-        context.registerMetric("parser_success", platformSuccessMetric, 1);
-
-        badFormattedJsonErrorMetric = new CountMetric();
-        context.registerMetric("parser_error_badjson", badFormattedJsonErrorMetric, 1);
-
-        exceptionErrorMetric = new CountMetric();
-        context.registerMetric("parser_error_exception", exceptionErrorMetric, 1);
+//        platformSuccessMetric = new MultiCountMetric();
+//        context.registerMetric("parser_success", platformSuccessMetric, 1);
+//
+//        badFormattedJsonErrorMetric = new CountMetric();
+//        context.registerMetric("parser_error_badjson", badFormattedJsonErrorMetric, 1);
+//
+//        exceptionErrorMetric = new CountMetric();
+//        context.registerMetric("parser_error_exception", exceptionErrorMetric, 1);
     }
 
     @Override
@@ -62,17 +62,17 @@ public class CockroachModelParserBolt extends BaseRichBolt {
                         cockroachLog.getStartEvent(),
                         input.getLongByField("timestamp")));
 
-                platformSuccessMetric.scope(platform).incr();
+//                platformSuccessMetric.scope(platform).incr();
             } else {
                 log.error("Invalid cockroach log received");
 
-                badFormattedJsonErrorMetric.incr();
+//                badFormattedJsonErrorMetric.incr();
             }
         } catch ( Exception ex ) {
             // @TODO Treat Exception nicely
             ex.printStackTrace();
 
-            exceptionErrorMetric.incr();
+//            exceptionErrorMetric.incr();
         }
 
         outputCollector.ack(input);

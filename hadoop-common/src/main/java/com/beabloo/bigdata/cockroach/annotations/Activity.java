@@ -1,4 +1,4 @@
-package com.beabloo.bigdata.cockroach.aspects;
+package com.beabloo.bigdata.cockroach.annotations;
 
 import com.beabloo.bigdata.cockroach.spec.Event;
 import com.beabloo.bigdata.cockroach.spec.Platform;
