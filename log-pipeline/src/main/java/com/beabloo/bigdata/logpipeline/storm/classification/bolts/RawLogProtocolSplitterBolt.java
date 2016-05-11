@@ -48,24 +48,24 @@ public class RawLogProtocolSplitterBolt extends BaseRichBolt {
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
         outputCollector = collector;
 
-        taskId = "" + context.getThisTaskId();
+        taskId = String.format("%s_%s_%s", context.getThisComponentId(), "" + context.getThisTaskId(), context.getThisWorkerPort());
 
         pushGateway = new PushGateway("stats.local.vm:9091");
         collectorRegistry = new CollectorRegistry();
 
         successCountMetric = Counter.build()
-                .name("rawlog_success")
+                .name("storm_logpipeline_rawlog_success_total")
                 .help("RawLogProtocolSplitterBolt metric count")
                 .labelNames("protocol")
                 .register(collectorRegistry);
 
         errorCountMetric = Counter.build()
-                .name("rawlog_error")
+                .name("storm_logpipeline_rawlog_error_total")
                 .help("RawLogProtocolSplitterBolt metric count")
                 .register(collectorRegistry);
 
         executionDurationHistogram = Histogram.build()
-                .name("execution_duration")
+                .name("storm_logpipeline_execution_duration")
                 .help("RawLogProtocolSplitterBolt metric count")
                 .register(collectorRegistry);
 
