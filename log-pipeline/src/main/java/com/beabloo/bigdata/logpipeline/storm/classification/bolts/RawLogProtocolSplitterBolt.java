@@ -105,7 +105,7 @@ public class RawLogProtocolSplitterBolt extends BaseRichBolt {
         try {
             Map<String, String> groupingKey = new HashMap<>();
             groupingKey.put("instance", taskId);
-            pushGateway.pushAdd(collectorRegistry, "storm_logpipeline", groupingKey);
+            pushGateway.push(collectorRegistry, "storm_logpipeline", groupingKey);
         } catch ( Exception ex ) {
             log.error("Error while trying to send metrics to push gateway", ex);
         }
