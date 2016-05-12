@@ -34,16 +34,11 @@ public class RawLogProtocolSplitterBolt extends BaseRichBolt {
 
     transient PushGateway pushGateway;
     transient CollectorRegistry collectorRegistry;
-    transient CollectorRegistry collectorRegistry2;
     transient String taskId;
 
     transient Counter successCountMetric;
     transient Counter errorCountMetric;
     transient Histogram executionDurationHistogram;
-
-    // @TODO This metric should be done for each protocol
-//     transient CountMetric successCountMetric;
-//     transient CountMetric errorCountMetric;
 
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
@@ -53,7 +48,6 @@ public class RawLogProtocolSplitterBolt extends BaseRichBolt {
 
         pushGateway = new PushGateway("stats.local.vm:9091");
         collectorRegistry = new CollectorRegistry();
-        collectorRegistry2 = new CollectorRegistry();
 
         successCountMetric = Counter.build()
                 .name("storm_logpipeline_rawlog_success_total")
@@ -67,15 +61,9 @@ public class RawLogProtocolSplitterBolt extends BaseRichBolt {
                 .register(collectorRegistry);
 
         executionDurationHistogram = Histogram.build()
-                .name("storm_logpipeline_execution_duration")
+                .name("storm_logpipeline_rawlog_execution_duration")
                 .help("RawLogProtocolSplitterBolt metric count")
-                .register(collectorRegistry2);
-
-//         successCountMetric = new CountMetric();
-//         context.registerMetric("rawlog_success", successCountMetric, 1);
-//
-//         errorCountMetric = new CountMetric();
-//         context.registerMetric("rawlog_error", successCountMetric, 1);
+                .register(collectorRegistry);
     }
 
     @Override
@@ -85,7 +73,7 @@ public class RawLogProtocolSplitterBolt extends BaseRichBolt {
         try {
             String type = input.getStringByField("type");
             if (type.startsWith("http") && cockroachUri.matcher(type).matches()) {
-                log.info(String.format("Found new raw log for cockroach..."));
+                log.info(String.format("Found new raw log    for cockroach..."));
                 outputCollector.emit(HTTP_COCKROACH_STREAM, input.getValues());
 
                 successCountMetric.labels("cockroach").inc();
@@ -100,7 +88,6 @@ public class RawLogProtocolSplitterBolt extends BaseRichBolt {
             errorCountMetric.inc();
         } finally {
             timer.observeDuration();
-
             outputCollector.ack(input);
         }
 
@@ -108,7 +95,6 @@ public class RawLogProtocolSplitterBolt extends BaseRichBolt {
             Map<String, String> groupingKey = new HashMap<>();
             groupingKey.put("instance", taskId);
             pushGateway.push(collectorRegistry, "storm_logpipeline", groupingKey);
-            pushGateway.push(collectorRegistry2, "storm_logpipeline", groupingKey);
         } catch ( Exception ex ) {
             log.error("Error while trying to send metrics to push gateway", ex);
         }

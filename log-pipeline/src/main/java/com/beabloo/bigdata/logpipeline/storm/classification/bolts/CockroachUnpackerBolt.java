@@ -3,6 +3,10 @@ package com.beabloo.bigdata.logpipeline.storm.classification.bolts;
 import com.beabloo.bigdata.cockroach.model.CockroachEventHttpRequestContainer;
 import com.beabloo.bigdata.cockroach.model.ParamsContainer;
 import com.beabloo.bigdata.cockroach.serdes.ParamsContainerFastDeserializer;
+import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.Counter;
+import io.prometheus.client.Histogram;
+import io.prometheus.client.exporter.PushGateway;
 import org.apache.storm.metric.api.CountMetric;
 import org.apache.storm.metric.api.MultiCountMetric;
 import org.apache.storm.task.OutputCollector;
@@ -19,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URLDecoder;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
@@ -36,36 +41,55 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
     private OutputCollector outputCollector;
     private ObjectMapper objectMapper;
 
-//    transient MultiCountMetric platformSuccessMetric;
-//    transient CountMetric badFormattedJsonErrorMetric;
-//    transient CountMetric exceptionErrorMetric;
+    transient PushGateway pushGateway;
+    transient CollectorRegistry collectorRegistry;
+    transient String taskId;
+
+    transient Counter successCountMetric;
+    transient Counter errorCountMetric;
+    transient Histogram executionDurationHistogram;
 
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
         outputCollector = collector;
+
+        taskId = String.format("%s_%s_%s", context.getThisComponentId(), "" + context.getThisTaskId(), context.getThisWorkerPort());
+
+        pushGateway = new PushGateway("stats.local.vm:9091");
+        collectorRegistry = new CollectorRegistry();
+
+        successCountMetric = Counter.build()
+                .name("storm_logpipeline_unpacker_success_total")
+                .help("CockroachUnpackerBolt metric count")
+                .labelNames("platform")
+                .register(collectorRegistry);
+
+        errorCountMetric = Counter.build()
+                .name("storm_logpipeline_unpacker_error_total")
+                .help("CockroachUnpackerBolt metric count")
+                .labelNames("type")
+                .register(collectorRegistry);
+
+        executionDurationHistogram = Histogram.build()
+                .name("storm_logpipeline_unpacker_execution_duration")
+                .help("CockroachUnpackerBolt metric count")
+                .register(collectorRegistry);
 
         // @TODO Wrap this into a class
         objectMapper = new ObjectMapper();
         SimpleModule simpleModule = new SimpleModule("UNK", Version.unknownVersion());
         simpleModule.addDeserializer(ParamsContainer.class, new ParamsContainerFastDeserializer());
         objectMapper.registerModule(simpleModule);
-
-//        platformSuccessMetric = new MultiCountMetric();
-//        context.registerMetric("unpak_success", platformSuccessMetric, 1);
-//
-//        badFormattedJsonErrorMetric = new CountMetric();
-//        context.registerMetric("unpak_error_badjson", badFormattedJsonErrorMetric, 1);
-//
-//        exceptionErrorMetric = new CountMetric();
-//        context.registerMetric("unpak_error_exception", exceptionErrorMetric, 1);
     }
 
     @Override
     public void execute(Tuple input) {
-        String json = getJson(input.getStringByField("data"));
-        String platform = getPlatform(input.getStringByField("type"));
-        if ( json != null && platform != null ) {
-            try {
+        Histogram.Timer timer = executionDurationHistogram.startTimer();
+
+        try {
+            String json = getJson(input.getStringByField("data"));
+            String platform = getPlatform(input.getStringByField("type"));
+            if ( json != null && platform != null ) {
                 log.debug(String.format("Received new raw log. json [%s]", json));
 
                 CockroachEventHttpRequestContainer container = objectMapper.readValue(URLDecoder.decode(json, "UTF-8"), CockroachEventHttpRequestContainer.class);
@@ -78,22 +102,30 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
                             platform,
                             paramsContainer.getParamsValues(),
                             paramsContainer.getExtraParams()));
+
+                    successCountMetric.labels(platform).inc();
                 }
-
-//                platformSuccessMetric.scope(platform).incrBy(container.getEvents().size());
-            } catch ( Exception ex ) {
-                // @TODO Treat Exception nicely
-                ex.printStackTrace();
-
-//                exceptionErrorMetric.incr();
+            } else {
+                // Notify problem to another stream
+                log.error(String.format("Badly formatted data. platform [%s] json [%s]", platform, json));
+                errorCountMetric.labels("badformat").inc();
             }
-        } else {
-            // Notify problem to another stream
-            log.error(String.format("Badly formatted data. platform [%s] json [%s]", platform, json));
-//            badFormattedJsonErrorMetric.incr();
+        } catch ( Exception ex ) {
+            // @TODO Treat Exception nicely
+            ex.printStackTrace();
+            errorCountMetric.labels("exception").inc();
+        } finally {
+            timer.observeDuration();
+            outputCollector.ack(input);
         }
 
-        outputCollector.ack(input);
+        try {
+            Map<String, String> groupingKey = new HashMap<>();
+            groupingKey.put("instance", taskId);
+            pushGateway.push(collectorRegistry, "storm_logpipeline", groupingKey);
+        } catch ( Exception ex ) {
+            log.error("Error while trying to send metrics to push gateway", ex);
+        }
     }
 
     @Override

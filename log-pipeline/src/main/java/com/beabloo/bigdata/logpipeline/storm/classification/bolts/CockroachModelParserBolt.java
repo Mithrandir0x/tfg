@@ -2,6 +2,10 @@ package com.beabloo.bigdata.logpipeline.storm.classification.bolts;
 
 import com.beabloo.bigdata.cockroach.model.CockroachLog;
 import com.beabloo.bigdata.cockroach.serdes.CockroachModelDeserializer;
+import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.Counter;
+import io.prometheus.client.Histogram;
+import io.prometheus.client.exporter.PushGateway;
 import org.apache.storm.metric.api.CountMetric;
 import org.apache.storm.metric.api.MultiCountMetric;
 import org.apache.storm.task.OutputCollector;
@@ -25,14 +29,40 @@ public class CockroachModelParserBolt extends BaseRichBolt {
     private OutputCollector outputCollector;
     private CockroachModelDeserializer cockroachModelDeserialize;
 
-//    transient MultiCountMetric platformSuccessMetric;
-//    transient CountMetric badFormattedJsonErrorMetric;
-//    transient CountMetric exceptionErrorMetric;
+    transient PushGateway pushGateway;
+    transient CollectorRegistry collectorRegistry;
+    transient String taskId;
+
+    transient Counter successCountMetric;
+    transient Counter errorCountMetric;
+    transient Histogram executionDurationHistogram;
 
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
         outputCollector = collector;
         cockroachModelDeserialize = new CockroachModelDeserializer();
+
+        taskId = String.format("%s_%s_%s", context.getThisComponentId(), "" + context.getThisTaskId(), context.getThisWorkerPort());
+
+        pushGateway = new PushGateway("stats.local.vm:9091");
+        collectorRegistry = new CollectorRegistry();
+
+        successCountMetric = Counter.build()
+                .name("storm_logpipeline_modelparser_success_total")
+                .help("CockroachModelParserBolt metric count")
+                .labelNames("platform")
+                .register(collectorRegistry);
+
+        errorCountMetric = Counter.build()
+                .name("storm_logpipeline_modelparser_error_total")
+                .help("CockroachModelParserBolt metric count")
+                .labelNames("type")
+                .register(collectorRegistry);
+
+        executionDurationHistogram = Histogram.build()
+                .name("storm_logpipeline_modelparser_execution_duration")
+                .help("CockroachModelParserBolt metric count")
+                .register(collectorRegistry);
 
 //        platformSuccessMetric = new MultiCountMetric();
 //        context.registerMetric("parser_success", platformSuccessMetric, 1);
@@ -61,21 +91,27 @@ public class CockroachModelParserBolt extends BaseRichBolt {
                         cockroachLog,
                         cockroachLog.getStartEvent(),
                         input.getLongByField("timestamp")));
-
-//                platformSuccessMetric.scope(platform).incr();
+                
+                successCountMetric.labels(platform).inc();
             } else {
                 log.error("Invalid cockroach log received");
-
-//                badFormattedJsonErrorMetric.incr();
+                errorCountMetric.labels("badformat").inc();
             }
         } catch ( Exception ex ) {
             // @TODO Treat Exception nicely
             ex.printStackTrace();
-
-//            exceptionErrorMetric.incr();
+            errorCountMetric.labels("exception").inc();
+        } finally {
+            outputCollector.ack(input);
         }
 
-        outputCollector.ack(input);
+        try {
+            Map<String, String> groupingKey = new HashMap<>();
+            groupingKey.put("instance", taskId);
+            pushGateway.push(collectorRegistry, "storm_logpipeline", groupingKey);
+        } catch ( Exception ex ) {
+            log.error("Error while trying to send metrics to push gateway", ex);
+        }
     }
 
     @Override
