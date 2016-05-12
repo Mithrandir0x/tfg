@@ -34,6 +34,7 @@ public class RawLogProtocolSplitterBolt extends BaseRichBolt {
 
     transient PushGateway pushGateway;
     transient CollectorRegistry collectorRegistry;
+    transient CollectorRegistry collectorRegistry2;
     transient String taskId;
 
     transient Counter successCountMetric;
@@ -52,6 +53,7 @@ public class RawLogProtocolSplitterBolt extends BaseRichBolt {
 
         pushGateway = new PushGateway("stats.local.vm:9091");
         collectorRegistry = new CollectorRegistry();
+        collectorRegistry2 = new CollectorRegistry();
 
         successCountMetric = Counter.build()
                 .name("storm_logpipeline_rawlog_success_total")
@@ -67,7 +69,7 @@ public class RawLogProtocolSplitterBolt extends BaseRichBolt {
         executionDurationHistogram = Histogram.build()
                 .name("storm_logpipeline_execution_duration")
                 .help("RawLogProtocolSplitterBolt metric count")
-                .register(collectorRegistry);
+                .register(collectorRegistry2);
 
 //         successCountMetric = new CountMetric();
 //         context.registerMetric("rawlog_success", successCountMetric, 1);
@@ -106,6 +108,7 @@ public class RawLogProtocolSplitterBolt extends BaseRichBolt {
             Map<String, String> groupingKey = new HashMap<>();
             groupingKey.put("instance", taskId);
             pushGateway.push(collectorRegistry, "storm_logpipeline", groupingKey);
+            pushGateway.push(collectorRegistry2, "storm_logpipeline", groupingKey);
         } catch ( Exception ex ) {
             log.error("Error while trying to send metrics to push gateway", ex);
         }
