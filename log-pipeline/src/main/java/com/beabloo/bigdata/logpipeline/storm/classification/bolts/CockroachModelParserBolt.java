@@ -76,6 +76,8 @@ public class CockroachModelParserBolt extends BaseRichBolt {
 
     @Override
     public void execute(Tuple input) {
+        Histogram.Timer timer = executionDurationHistogram.startTimer();
+
         try {
             String platform = input.getStringByField("platform");
             String paramsValues = input.getStringByField("paramsValues");
@@ -102,6 +104,7 @@ public class CockroachModelParserBolt extends BaseRichBolt {
             ex.printStackTrace();
             errorCountMetric.labels("exception").inc();
         } finally {
+            timer.observeDuration();
             outputCollector.ack(input);
         }
 
