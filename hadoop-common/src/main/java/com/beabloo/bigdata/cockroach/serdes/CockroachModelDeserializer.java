@@ -49,7 +49,13 @@ public class CockroachModelDeserializer {
             Event event = Event.getEvent(eventId);
             if ( event != null ) {
                 log.info(String.format("Deserializing platform [%s] event [%s]", platform.name(), event.name()));
-                values = deserializers.get(ActivityDefinition.getActivityDefinition(platform, event)).deserialize(paramsValues, extraParams);
+                ActivityDefinition activityDefinition = ActivityDefinition.getActivityDefinition(platform, event);
+                if ( activityDefinition != null ) {
+                    values = deserializers.get(activityDefinition).deserialize(paramsValues, extraParams);
+                } else {
+                    // @TODO Throw specific exception
+                    log.warn(String.format("Unknown activity definition. Platform [%s] Event [%s]", platformName, eventId));
+                }
             } else {
                 // @TODO Throw specific exception
                 log.warn(String.format("Unknown event id [%s]", eventId));

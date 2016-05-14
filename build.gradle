@@ -1,3 +1,16 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'net.saliman:gradle-cobertura-plugin:2.3.1'
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
 subprojects {
 
     group 'com.beabloo.bigdata'
@@ -56,6 +69,7 @@ subprojects {
         dependencies {
             //buildscript 'com.beabloo.basegradlescripts:base-script-java:RB-SNAPSHOT'
             //ant.unjar src: configurations.buildscript.singleFile, dest: '.gradle'
+            classpath 'net.saliman:gradle-cobertura-plugin:2.3.1'
         }
     }
 
@@ -78,6 +92,10 @@ subprojects {
 
     task allDeps(type: DependencyReportTask) {}
 
+}
+
+allprojects {
+    apply plugin: 'net.saliman.cobertura'
 }
 
 task dependencyReport {

@@ -6,8 +6,6 @@ import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Histogram;
 import io.prometheus.client.exporter.PushGateway;
-import org.apache.storm.metric.api.CountMetric;
-import org.apache.storm.metric.api.MultiCountMetric;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -63,15 +61,6 @@ public class CockroachModelParserBolt extends BaseRichBolt {
                 .name("storm_logpipeline_modelparser_execution_duration")
                 .help("CockroachModelParserBolt metric count")
                 .register(collectorRegistry);
-
-//        platformSuccessMetric = new MultiCountMetric();
-//        context.registerMetric("parser_success", platformSuccessMetric, 1);
-//
-//        badFormattedJsonErrorMetric = new CountMetric();
-//        context.registerMetric("parser_error_badjson", badFormattedJsonErrorMetric, 1);
-//
-//        exceptionErrorMetric = new CountMetric();
-//        context.registerMetric("parser_error_exception", exceptionErrorMetric, 1);
     }
 
     @Override

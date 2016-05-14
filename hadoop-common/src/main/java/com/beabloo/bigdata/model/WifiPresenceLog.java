@@ -8,6 +8,7 @@ import com.beabloo.bigdata.cockroach.spec.Platform;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 
 @Activity(platform = Platform.WIFI, event = Event.PRESENCE)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -19,6 +20,8 @@ public class WifiPresenceLog extends CockroachLog {
 
     @Parameter
     @NotNull(message = "[oui] cannot be null")
+    @Pattern(regexp="^[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}$",
+        message="[oui] value is not acceptable")
     private String oui;
 
     @Parameter
