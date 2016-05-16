@@ -6,7 +6,6 @@ import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.StringSerializer;
 
 import java.util.Properties;
-import java.util.concurrent.Future;
 
 public class RawLogProducer {
 
@@ -25,6 +24,7 @@ public class RawLogProducer {
                 properties.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, System.getProperty("log_gateway.kafka.producer.bootstrap.servers")); // -Dlog_gateway.kafka.producer.bootstrap.servers=localhost:9092
                 properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
                 properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, RawLogSerDe.class.getName());
+                properties.setProperty(ProducerConfig.PARTITIONER_CLASS_CONFIG, LongValuePartitioner.class.getName());
             } else if ( "0.8.2.2".equals(kafkaVersion) ) {
                 properties.setProperty("metadata.broker.list", System.getProperty("log_gateway.kafka.metadata.broker.list")); // -Dlog_gateway.kafka.metadata.broker.list=localhost:9092
                 properties.setProperty("key.serializer.class", StringSerializer.class.getName());
