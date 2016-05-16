@@ -19,7 +19,7 @@ hotspots = [ 57469 ]
 sensors = [ 5166, 5169, 5172, 5175, 5181, 5214, 5167, 5170, 5173, 5176, 5179, 5182, 5168, 5171, 5174, 5177, 5180 ]
 
 def device(prefix = ''):
-    mac = [ "%02x" % random.randint(0, 255) for i in range(6) ]
+    mac = [ hex(random.randint(0, 255))[-2:] for i in range(6) ]
     mac_str = ':'.join(mac)
     oui = ':'.join(mac[:3])
     return '%s%s' % ( prefix, md5.new(mac_str).hexdigest() ), oui
@@ -61,7 +61,7 @@ class http(object):
 if __name__ == '__main__':
     while True:
         evidences = { 'events': [ { 'paramsValues': get_wifi_presence(organizations, hotspots, sensors), 'extraParams': {} } for i in xrange(random.randint(1, 5)) ] }
-        url = '%s' % endpoints[random.randint(0, len(endpoints) - 1)]
+        url = '%s' % endpoints[random.randint(0, 0)]
         with http(url) as connection:
             path = '%s%s/%s?%s' % ( context, activityTrackingPath, platforms[0], urllib.urlencode({'json': json.dumps(evidences)}) )
             print 'http://%s%s' % ( url, path )
