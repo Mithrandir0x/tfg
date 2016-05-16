@@ -51,7 +51,7 @@ public class RawLogProducer {
 
     public void send(RawLog rawLog) {
         long timestamp = System.currentTimeMillis();
-        long partition = timestamp % 4;
+        long partition = timestamp % 4l;
         ProducerRecord<String, RawLog> message = new ProducerRecord<>(baseTopic, "" + partition, rawLog);
         producer.send(message, (RecordMetadata metadata, Exception exception) -> {
             if ( exception == null ) {
