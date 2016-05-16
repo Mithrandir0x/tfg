@@ -32,7 +32,7 @@ public class LogClassificationTopology {
             Config config = new Config();
 
             RawLogKafkaSpout rawLogKafkaSpout = new RawLogKafkaSpout();
-            builder.setSpout(RawLogKafkaSpout.ID, rawLogKafkaSpout);
+            builder.setSpout(RawLogKafkaSpout.ID, rawLogKafkaSpout, 4);
 
             RawLogProtocolSplitterBolt rawLogProtocolSplitterBolt = new RawLogProtocolSplitterBolt();
             builder.setBolt(RawLogProtocolSplitterBolt.ID, rawLogProtocolSplitterBolt)

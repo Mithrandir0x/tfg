@@ -13,7 +13,7 @@ public class RawLogKafkaSpoutConfig extends SpoutConfig {
         super(new ZkHosts("nn.local.vm:2181,hive.local.vm:2181,hbase.local.vm:2181,nimbus.local.vm:2181"),
                 "raw-logs",
                 "/raw-logs",
-                "raw-log-consumer-1");
+                "raw-log-consumer-group");
 
         this.scheme = new SchemeAsMultiScheme(new RawLogScheme());
         this.startOffsetTime = kafka.api.OffsetRequest.LatestTime();
