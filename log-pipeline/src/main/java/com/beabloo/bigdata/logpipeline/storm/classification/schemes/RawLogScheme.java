@@ -9,8 +9,8 @@ import com.beabloo.bigdata.model.RawLog;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RawLogScheme implements Scheme {
 
@@ -21,12 +21,16 @@ public class RawLogScheme implements Scheme {
 //        return new Values(rawLog.getTimestamp(), rawLog.getType(), rawLog.getData());
 //    }
 
+    private static final Logger log = LoggerFactory.getLogger(RawLogScheme.class);
+
     @Override
     public List<Object> deserialize(ByteBuffer buffer) {
         RawLogSerDe serDe = new RawLogSerDe();
         byte[] bufferBytes = buffer.array();
         byte[] bytes = Arrays.copyOfRange(bufferBytes, 71, bufferBytes.length);;
-        //Logger.getLogger(RawLogScheme.class.getName()).log(Level.SEVERE, String.format("rawlogscheme bytes [%s]", bytesToHex(bytes)));
+        
+        log.info(String.format("bufferBytes [%s]", bytesToHex(bufferBytes)));
+        log.info(String.format("bytes [%s]", bytesToHex(bytes)));
 
         RawLog rawLog = serDe.deserialize(null, bytes);
 
