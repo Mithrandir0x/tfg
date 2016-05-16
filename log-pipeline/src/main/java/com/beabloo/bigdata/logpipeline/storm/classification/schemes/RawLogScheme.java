@@ -24,12 +24,14 @@ public class RawLogScheme implements Scheme {
     private static final Logger log = LoggerFactory.getLogger(RawLogScheme.class);
 
     @Override
-    public List<Object> deserialize(ByteBuffer buffer) {
+    public List<Object> deserialize(ByteBuffer payload) {
         RawLogSerDe serDe = new RawLogSerDe();
-        byte[] bufferBytes = buffer.array();
-        byte[] bytes = Arrays.copyOfRange(bufferBytes, 71, bufferBytes.length);;
-        
-        log.info(String.format("bufferBytes [%s]", bytesToHex(bufferBytes)));
+        //byte[] bufferBytes = buffer.array();
+        //byte[] bytes = Arrays.copyOfRange(bufferBytes, 71, bufferBytes.length);
+        byte[] bytes = new byte[payload.limit()];
+        payload.get(bytes);
+
+        //log.info(String.format("bufferBytes [%s]", bytesToHex(bufferBytes)));
         log.info(String.format("bytes [%s]", bytesToHex(bytes)));
 
         RawLog rawLog = serDe.deserialize(null, bytes);
