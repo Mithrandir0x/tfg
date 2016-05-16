@@ -13,7 +13,7 @@ public class RawLogProducer {
 
     private static String baseTopic = "raw-logs";
 
-    private Producer<String, RawLog> producer;
+    private Producer<Long, RawLog> producer;
 
     private RawLogProducer() {
         try {
@@ -45,14 +45,13 @@ public class RawLogProducer {
         return ourInstance;
     }
 
-    public Producer<String, RawLog> getProducer() {
+    public Producer<Long, RawLog> getProducer() {
         return producer;
     }
 
     public void send(RawLog rawLog) {
         long timestamp = System.currentTimeMillis();
-        long partition = timestamp % 4l;
-        ProducerRecord<String, RawLog> message = new ProducerRecord<>(baseTopic, "" + partition, rawLog);
+        ProducerRecord<Long, RawLog> message = new ProducerRecord<>(baseTopic, timestamp, rawLog);
         producer.send(message, (RecordMetadata metadata, Exception exception) -> {
             if ( exception == null ) {
                 System.out.println(String.format("Sent message [%s] to kafka [ topic [%s] partition [%s] offset [%s] ]...",
