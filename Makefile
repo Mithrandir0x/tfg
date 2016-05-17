@@ -1,4 +1,7 @@
 
+cobertura:
+	gradle -x :storm-hdfs:test cobertura
+
 compile:
 	gradle -x :storm-hdfs:test clean build fatJar
 
