@@ -103,7 +103,7 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
                 int containerSize = container.getEvents().size();
 
                 log.info(String.format("Unpacked [%s] cockroach events", containerSize));
-                currentUnpackedLogsMetric.labels(platform).inc(containerSize);
+                currentUnpackedLogsMetric.labels(platform).set(containerSize);
 
                 for ( ParamsContainer paramsContainer : container.getEvents() ) {
                     log.debug(String.format("Emiting new event log [%s]", paramsContainer));
@@ -114,8 +114,6 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
 
                     successCountMetric.labels(platform).inc();
                 }
-
-                currentUnpackedLogsMetric.labels(platform).dec(containerSize);
             } else {
                 // Notify problem to another stream
                 log.error(String.format("Badly formatted data. platform [%s] json [%s]", platform, json));
