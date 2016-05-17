@@ -5,6 +5,7 @@ import com.beabloo.bigdata.cockroach.model.ParamsContainer;
 import com.beabloo.bigdata.cockroach.serdes.ParamsContainerFastDeserializer;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Counter;
+import io.prometheus.client.Gauge;
 import io.prometheus.client.Histogram;
 import io.prometheus.client.exporter.PushGateway;
 import org.apache.storm.task.OutputCollector;
@@ -46,6 +47,7 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
     transient Counter successCountMetric;
     transient Counter errorCountMetric;
     transient Histogram executionDurationHistogram;
+    transient Gauge currentUnpackedLogsMetric;
 
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
@@ -53,6 +55,7 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
 
         taskId = String.format("%s_%s_%s", context.getThisComponentId(), "" + context.getThisTaskId(), context.getThisWorkerPort());
 
+        // @TODO Metric collection should be wrapped
         pushGateway = new PushGateway("stats.local.vm:9091");
         collectorRegistry = new CollectorRegistry();
 
@@ -73,6 +76,12 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
                 .help("CockroachUnpackerBolt metric count")
                 .register(collectorRegistry);
 
+        currentUnpackedLogsMetric = Gauge.build()
+                .name("storm_logpipeline_unpacker_current_logs_count")
+                .help("CockroachUnpackerBolt metric count")
+                .labelNames("platform")
+                .register(collectorRegistry);
+
         // @TODO Wrap this into a class
         objectMapper = new ObjectMapper();
         SimpleModule simpleModule = new SimpleModule("UNK", Version.unknownVersion());
@@ -91,8 +100,10 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
                 log.debug(String.format("Received new raw log. json [%s]", json));
 
                 CockroachEventHttpRequestContainer container = objectMapper.readValue(URLDecoder.decode(json, "UTF-8"), CockroachEventHttpRequestContainer.class);
+                int containerSize = container.getEvents().size();
 
-                log.info(String.format("Unpacked [%s] cockroach events", container.getEvents().size()));
+                log.info(String.format("Unpacked [%s] cockroach events", containerSize));
+                currentUnpackedLogsMetric.labels(platform).inc(containerSize);
 
                 for ( ParamsContainer paramsContainer : container.getEvents() ) {
                     log.debug(String.format("Emiting new event log [%s]", paramsContainer));
@@ -103,6 +114,8 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
 
                     successCountMetric.labels(platform).inc();
                 }
+
+                currentUnpackedLogsMetric.labels(platform).dec(containerSize);
             } else {
                 // Notify problem to another stream
                 log.error(String.format("Badly formatted data. platform [%s] json [%s]", platform, json));

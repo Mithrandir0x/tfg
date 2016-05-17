@@ -10,6 +10,7 @@ import java.util.UUID;
 public class RawLogKafkaSpoutConfig extends SpoutConfig {
 
     public RawLogKafkaSpoutConfig() {
+        // @TODO Zookeeper hosts should be parameterized
         super(new ZkHosts("nn.local.vm:2181,hive.local.vm:2181,hbase.local.vm:2181,nimbus.local.vm:2181"),
                 "raw-logs",
                 "/raw-logs",

@@ -42,6 +42,7 @@ public class CockroachModelParserBolt extends BaseRichBolt {
 
         taskId = String.format("%s_%s_%s", context.getThisComponentId(), "" + context.getThisTaskId(), context.getThisWorkerPort());
 
+        // @TODO Metric collection should be wrapped
         pushGateway = new PushGateway("stats.local.vm:9091");
         collectorRegistry = new CollectorRegistry();
 
