@@ -5,11 +5,9 @@ import com.beabloo.bigdata.cockroach.serdes.CockroachModelDeserializer;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Histogram;
-import io.prometheus.client.exporter.PushGateway;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
-import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
@@ -18,7 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-public class CockroachModelParserBolt extends BaseRichBolt {
+public class CockroachModelParserBolt extends LogPipelineBaseBolt {
 
     private static final Logger log = LoggerFactory.getLogger(CockroachModelParserBolt.class);
 
@@ -27,24 +25,17 @@ public class CockroachModelParserBolt extends BaseRichBolt {
     private OutputCollector outputCollector;
     private CockroachModelDeserializer cockroachModelDeserialize;
 
-    transient PushGateway pushGateway;
-    transient CollectorRegistry collectorRegistry;
-    transient String taskId;
-
     transient Counter successCountMetric;
     transient Counter errorCountMetric;
     transient Histogram executionDurationHistogram;
 
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
+        super.prepare(stormConf, context, collector);
+
         outputCollector = collector;
         cockroachModelDeserialize = new CockroachModelDeserializer();
-
-        taskId = String.format("%s_%s_%s", context.getThisComponentId(), "" + context.getThisTaskId(), context.getThisWorkerPort());
-
-        // @TODO Metric collection should be wrapped
-        pushGateway = new PushGateway("stats.local.vm:9091");
-        collectorRegistry = new CollectorRegistry();
+        CollectorRegistry collectorRegistry = getCollectorRegistry();
 
         successCountMetric = Counter.build()
                 .name("storm_logpipeline_modelparser_success_total")
@@ -65,7 +56,7 @@ public class CockroachModelParserBolt extends BaseRichBolt {
     }
 
     @Override
-    public void execute(Tuple input) {
+    public void processTuple(Tuple input) {
         Histogram.Timer timer = executionDurationHistogram.startTimer();
 
         try {
@@ -83,7 +74,7 @@ public class CockroachModelParserBolt extends BaseRichBolt {
                         cockroachLog,
                         cockroachLog.getStartEvent(),
                         input.getLongByField("timestamp")));
-                
+
                 successCountMetric.labels(platform).inc();
             } else {
                 log.error("Invalid cockroach log received");
@@ -97,19 +88,13 @@ public class CockroachModelParserBolt extends BaseRichBolt {
             timer.observeDuration();
             outputCollector.ack(input);
         }
-
-        try {
-            Map<String, String> groupingKey = new HashMap<>();
-            groupingKey.put("instance", taskId);
-            pushGateway.push(collectorRegistry, "storm_logpipeline", groupingKey);
-        } catch ( Exception ex ) {
-            log.error("Error while trying to send metrics to push gateway", ex);
-        }
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declare(new Fields("activity", "log", "startEvent", "recordCreationTime"));
+        super.declareOutputFields(declarer);
+
+        declarer.declare(new Fields("activity", "log", "startEvent", "timestamp"));
     }
 
 }

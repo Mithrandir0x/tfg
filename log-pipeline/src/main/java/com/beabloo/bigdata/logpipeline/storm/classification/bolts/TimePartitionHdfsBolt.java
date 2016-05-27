@@ -1,44 +1,45 @@
-package com.beabloo.bigdata.logpipeline.storm.classification.bolts.hdfs;
+package com.beabloo.bigdata.logpipeline.storm.classification.bolts;
 
 import com.beabloo.bigdata.cockroach.model.CockroachLog;
 import com.beabloo.bigdata.cockroach.spec.ActivityDefinition;
-import com.beabloo.bigdata.cockroach.spec.Event;
-import com.beabloo.bigdata.cockroach.spec.Platform;
+import org.apache.storm.hdfs.bolt.HdfsBolt;
 import org.apache.storm.hdfs.bolt.format.RecordFormat;
+import org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy;
+import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
 import org.apache.storm.hdfs.common.Partitioner;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class HdfsLogSelector {
+public abstract class TimePartitionHdfsBolt extends HdfsBolt {
 
-    private static final Logger log = LoggerFactory.getLogger(HdfsLogSelector.class);
+    private static final Logger log = LoggerFactory.getLogger(TimePartitionHdfsBolt.class);
 
-    public static HdfsLogFormat getHdfsLogFormat() {
-        return new HdfsLogFormat();
+    public TimePartitionHdfsBolt() {
+        this.withFsUrl("hdfs://nn.local.vm:8020")
+                .withFileNameFormat(fileNameFormat)
+                .withRecordFormat(new HdfsLogFormat())
+                .withPartitioner(new HdfsLogPartitioner())
+                .withRotationPolicy(new FileSizeRotationPolicy(2.0f, FileSizeRotationPolicy.Units.MB))
+                .withSyncPolicy(new CountSyncPolicy(10));
     }
 
-    public static HdfsLogPartitioner getHdfsLogPartitioner() {
-        return new HdfsLogPartitioner();
-    }
+    public abstract byte[] format(Tuple tuple);
 
-    static class HdfsLogFormat implements RecordFormat {
+    private class HdfsLogFormat implements RecordFormat {
 
         @Override
         public byte[] format(Tuple input) {
-            CockroachLog cockroachLog = (CockroachLog) input.getValueByField("log");
-            String logLine = cockroachLog.toString() + CockroachLog.linesTerminatedBy;
-            return logLine.getBytes();
+            return format(input);
         }
 
     }
 
-    static class HdfsLogPartitioner implements Partitioner {
+    private class HdfsLogPartitioner implements Partitioner {
 
         private Map<String, ActivityDefinition> activities;
 
@@ -52,7 +53,7 @@ public class HdfsLogSelector {
         @Override
         public String getPartitionPath(Tuple tuple) {
             String activityName = tuple.getStringByField("activity");
-            Long startEvent = tuple.getLongByField("startEvent");
+            Long startEvent = tuple.getLongByField("timestamp");
 
             ActivityDefinition activityDefinition = activities.get(activityName);
             if ( activityDefinition != null && startEvent != null ) {

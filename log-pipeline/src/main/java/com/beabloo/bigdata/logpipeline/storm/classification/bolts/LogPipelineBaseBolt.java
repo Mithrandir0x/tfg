@@ -4,7 +4,9 @@ import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.exporter.PushGateway;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
+import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseRichBolt;
+import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,9 +14,11 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class PrometheusObservableBolt extends BaseRichBolt {
+public abstract class LogPipelineBaseBolt extends BaseRichBolt {
 
-    private static final Logger log = LoggerFactory.getLogger(PrometheusObservableBolt.class);
+    private static final Logger log = LoggerFactory.getLogger(LogPipelineBaseBolt.class);
+
+    public static final String ERROR_STREAM = "bolt.error";
 
     private transient PushGateway pushGateway;
     private transient CollectorRegistry collectorRegistry;
@@ -40,11 +44,18 @@ public abstract class PrometheusObservableBolt extends BaseRichBolt {
         }
     }
 
+    @Override
+    public void declareOutputFields(OutputFieldsDeclarer declarer) {
+        declarer.declareStream(ERROR_STREAM, new Fields("timestamp", "type", "data", "messages"));
+    }
+
     protected CollectorRegistry getCollectorRegistry() {
         return collectorRegistry;
     }
 
-
+    protected String getTaskId() {
+        return taskId;
+    }
 
     public abstract void processTuple(Tuple input);
 

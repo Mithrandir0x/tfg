@@ -7,11 +7,9 @@ import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
 import io.prometheus.client.Histogram;
-import io.prometheus.client.exporter.PushGateway;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
-import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
@@ -22,13 +20,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URLDecoder;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class CockroachUnpackerBolt extends BaseRichBolt {
+public class CockroachUnpackerBolt extends LogPipelineBaseBolt {
 
     private static final Logger log = LoggerFactory.getLogger(CockroachUnpackerBolt.class);
 
@@ -40,10 +37,6 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
     private OutputCollector outputCollector;
     private ObjectMapper objectMapper;
 
-    transient PushGateway pushGateway;
-    transient CollectorRegistry collectorRegistry;
-    transient String taskId;
-
     transient Counter successCountMetric;
     transient Counter errorCountMetric;
     transient Histogram executionDurationHistogram;
@@ -51,13 +44,10 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
 
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
+        super.prepare(stormConf, context, collector);
+
         outputCollector = collector;
-
-        taskId = String.format("%s_%s_%s", context.getThisComponentId(), "" + context.getThisTaskId(), context.getThisWorkerPort());
-
-        // @TODO Metric collection should be wrapped
-        pushGateway = new PushGateway("stats.local.vm:9091");
-        collectorRegistry = new CollectorRegistry();
+        CollectorRegistry collectorRegistry = getCollectorRegistry();
 
         successCountMetric = Counter.build()
                 .name("storm_logpipeline_unpacker_success_total")
@@ -90,7 +80,7 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
     }
 
     @Override
-    public void execute(Tuple input) {
+    public void processTuple(Tuple input) {
         Histogram.Timer timer = executionDurationHistogram.startTimer();
 
         try {
@@ -127,22 +117,16 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
             timer.observeDuration();
             outputCollector.ack(input);
         }
-
-        try {
-            Map<String, String> groupingKey = new HashMap<>();
-            groupingKey.put("instance", taskId);
-            pushGateway.push(collectorRegistry, "storm_logpipeline", groupingKey);
-        } catch ( Exception ex ) {
-            log.error("Error while trying to send metrics to push gateway", ex);
-        }
     }
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
+        super.declareOutputFields(declarer);
+
         declarer.declare(new Fields("timestamp", "platform", "paramsValues", "extraParams"));
     }
 
-    String getJson(String rawData) {
+    private String getJson(String rawData) {
         String json = null;
 
         String token;
@@ -160,7 +144,7 @@ public class CockroachUnpackerBolt extends BaseRichBolt {
         return json;
     }
 
-    String getPlatform(String url) {
+    private String getPlatform(String url) {
         String platform = null;
 
         Matcher matcher = platformPattern.matcher(url);
