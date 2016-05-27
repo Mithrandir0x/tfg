@@ -40,7 +40,11 @@ dependencies {
     compile project(':hadoop-common')
     compile project(':storm-hdfs')
 
-    compile "com.google.guava:guava:19.0"
+    provided "com.google.guava:guava:19.0", {
+        ext {
+            fatJarExclude = true
+        }
+    }
     compile "biz.paluch.redis:lettuce:4.1.2.Final"
 
     // required due to some strange decision on storm
