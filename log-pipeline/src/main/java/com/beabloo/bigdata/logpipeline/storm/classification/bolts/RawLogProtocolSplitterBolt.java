@@ -103,6 +103,9 @@ public class RawLogProtocolSplitterBolt extends LogPipelineBaseBolt {
                 log.error(String.format("Found duplicated raw-log"));
                 duplicatedCountMetric.inc();
             }
+
+            connection.close();
+            client.shutdown();
         } catch ( Exception ex ) {
             log.error(ex.getMessage(), ex);
 
@@ -135,9 +138,9 @@ public class RawLogProtocolSplitterBolt extends LogPipelineBaseBolt {
 
         @Override
         public void funnel(Tuple from, PrimitiveSink into) {
-            into.putLong(from.getLongByField(""))
+            into.putLong(from.getLongByField("timestamp"))
                     .putString(from.getStringByField("type"), Charsets.UTF_8)
-                    .putString(from.getStringByField(""), Charsets.UTF_8);
+                    .putString(from.getStringByField("data"), Charsets.UTF_8);
         }
 
     }
