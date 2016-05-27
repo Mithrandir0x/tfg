@@ -126,7 +126,7 @@ public class CockroachUnpackerBolt extends LogPipelineBaseBolt {
         declarer.declare(new Fields("timestamp", "platform", "paramsValues", "extraParams"));
     }
 
-    private String getJson(String rawData) {
+    protected String getJson(String rawData) {
         String json = null;
 
         String token;
@@ -144,7 +144,7 @@ public class CockroachUnpackerBolt extends LogPipelineBaseBolt {
         return json;
     }
 
-    private String getPlatform(String url) {
+    protected String getPlatform(String url) {
         String platform = null;
 
         Matcher matcher = platformPattern.matcher(url);
