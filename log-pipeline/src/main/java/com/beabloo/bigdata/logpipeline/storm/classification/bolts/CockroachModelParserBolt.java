@@ -145,6 +145,8 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
                     .putLong(from.getStartEvent());
 
             if ( from instanceof WifiPresenceLog ) {
+                log.info("Processing wifi-presence-log through funnel");
+
                 WifiPresenceLog log = (WifiPresenceLog) from;
                 into.putLong(log.getHotspot());
                 into.putLong(log.getSensor());
