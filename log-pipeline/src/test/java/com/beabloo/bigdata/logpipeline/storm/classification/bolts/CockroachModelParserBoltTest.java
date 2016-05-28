@@ -18,7 +18,7 @@ public class CockroachModelParserBoltTest {
 
     @Test
     public void hashDistributionTest() throws Exception {
-        WifiPresenceLog log = new WifiPresenceLog();
+        /* WifiPresenceLog log = new WifiPresenceLog();
 
         CockroachModelParserBolt bolt = new CockroachModelParserBolt();
 
@@ -30,7 +30,8 @@ public class CockroachModelParserBoltTest {
 
         bolt.prepare(conf, context, collector);
 
-        String[][] dataset = CockroachLogSamples.getDataSet("../datasets/unique_devices_1M.csv", 1000000);
+        // String[][] dataset = CockroachLogSamples.getDataSet("../datasets/unique_devices_1M.csv", 1000000);
+        String[][] dataset = new String[][] {};
 
         for ( int i = 0, j = 0 ; i < dataset.length ; i++ ) {
             String[] data = dataset[i];
@@ -67,7 +68,7 @@ public class CockroachModelParserBoltTest {
             lines.add("pfadd STORM-PIPELINE-COCKROACH-MODEL-PARSER " + hash);
         }
 
-        Files.write(Paths.get("../datasets/unique_devices_1M.hashes.log"), lines);
+        Files.write(Paths.get("../datasets/unique_devices_1M.hashes.log"), lines); */
     }
 
 }
