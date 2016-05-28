@@ -80,16 +80,16 @@ public class RawLogProtocolSplitterBolt extends LogPipelineBaseBolt {
 
     @Override
     public void processTuple(Tuple input) {
-        String tupleUuid = getUniqueRawLogId(input);
+        String uuid = getUniqueRawLogId(input);
 
         Histogram.Timer timer = executionDurationHistogram.startTimer();
 
         try {
             RedisAsyncCommands<String, String> commands = redisConnection.async();
-            RedisFuture<Long> future = ((RedisHLLAsyncCommands) commands).pfadd(getTaskId(), tupleUuid);
+            RedisFuture<Long> future = ((RedisHLLAsyncCommands) commands).pfadd("STORM-PIPELINE-RAWLOG", uuid);
 
             future.thenAccept(currentlyAdded -> {
-                log.info(String.format("Added raw-log hash [%s] to redis. currentlyAdded [%s]", tupleUuid, currentlyAdded));
+                log.info(String.format("Added raw-log hash [%s] to redis. currentlyAdded [%s]", uuid, currentlyAdded));
 
                 if ( currentlyAdded == 1l  ) {
                     String type = input.getStringByField("type");
@@ -104,7 +104,7 @@ public class RawLogProtocolSplitterBolt extends LogPipelineBaseBolt {
                         successCountMetric.labels("unknown").inc();
                     }
                 } else {
-                    log.error(String.format("Found duplicated raw-log [%s]", tupleUuid));
+                    log.error(String.format("Found duplicated raw-log [%s]", uuid));
                     duplicatedCountMetric.inc();
                 }
 
