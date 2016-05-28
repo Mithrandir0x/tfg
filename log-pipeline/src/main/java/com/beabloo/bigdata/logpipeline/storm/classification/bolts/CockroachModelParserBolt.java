@@ -89,7 +89,7 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
             if ( cockroachLog != null ) {
                 String uuid = getUniqueCockroachLogId(cockroachLog);
                 RedisAsyncCommands<String, String> commands = redisConnection.async();
-                RedisFuture<Long> future = ((RedisHLLAsyncCommands) commands).pfadd("STORM-PIPELINE-COCKROACH-MODEL-PARSER", uuid);
+                RedisFuture<Long> future = ((RedisHLLAsyncCommands) commands).pfadd("storm:logpipeline:modelparser", uuid);
 
                 future.thenAccept(currentlyAdded -> {
                     log.info(String.format("Added cockroach-log hash [%s] to redis. currentlyAdded [%s]", uuid, currentlyAdded));
@@ -134,12 +134,7 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
 
     String getUniqueCockroachLogId(CockroachLog input) {
         HashCode hashCode = hashFunction.hashObject(input, funnel);
-
-        StringBuilder build = new StringBuilder();
-        build.append("storm-cockroach-modelparser-");
-        build.append(hashCode.toString());
-
-        return build.toString();
+        return hashCode.toString();
     }
 
     private static class CockroachLogFunnel implements Funnel<CockroachLog> {

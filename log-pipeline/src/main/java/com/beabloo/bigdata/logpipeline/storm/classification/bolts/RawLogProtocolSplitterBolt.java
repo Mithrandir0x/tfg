@@ -86,7 +86,7 @@ public class RawLogProtocolSplitterBolt extends LogPipelineBaseBolt {
 
         try {
             RedisAsyncCommands<String, String> commands = redisConnection.async();
-            RedisFuture<Long> future = ((RedisHLLAsyncCommands) commands).pfadd("STORM-PIPELINE-RAWLOG", uuid);
+            RedisFuture<Long> future = ((RedisHLLAsyncCommands) commands).pfadd("storm:logpipeline:rawlog", uuid);
 
             future.thenAccept(currentlyAdded -> {
                 log.info(String.format("Added raw-log hash [%s] to redis. currentlyAdded [%s]", uuid, currentlyAdded));
@@ -137,12 +137,7 @@ public class RawLogProtocolSplitterBolt extends LogPipelineBaseBolt {
 
     String getUniqueRawLogId(Tuple input) {
         HashCode hashCode = hashFunction.hashObject(input, funnel);
-
-        StringBuilder build = new StringBuilder();
-        build.append("storm-rawlog-");
-        build.append(hashCode.toString());
-
-        return build.toString();
+        return hashCode.toString();
     }
 
     private static class TupleFunnel implements Funnel<Tuple> {
