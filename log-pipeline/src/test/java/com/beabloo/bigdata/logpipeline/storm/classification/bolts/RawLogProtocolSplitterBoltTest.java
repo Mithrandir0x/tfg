@@ -27,7 +27,7 @@ public class RawLogProtocolSplitterBoltTest {
         bolt.prepare(conf, context, collector);
 
         tuple = mockTuple(0, "", "");
-        assertEquals("storm-rawlog-cbc357ccb763df2852fee8c4fc7d55f2", bolt.getUniqueRawLogId(tuple));
+        assertEquals("cbc357ccb763df2852fee8c4fc7d55f2", bolt.getUniqueRawLogId(tuple));
 
         rawLog = new RawLog(
                 1464419666l,
@@ -41,7 +41,7 @@ public class RawLogProtocolSplitterBoltTest {
                         "%22extraParams%22%3A+%7B%7D%7D%5D%7D");
 
         tuple = mockTuple(rawLog.getTimestamp(), rawLog.getType(), rawLog.getData());
-        assertEquals("storm-rawlog-3fb7192a06c4e17e087e15dd9595baba", bolt.getUniqueRawLogId(tuple));
+        assertEquals("3fb7192a06c4e17e087e15dd9595baba", bolt.getUniqueRawLogId(tuple));
 
         bolt.cleanup();
     }
