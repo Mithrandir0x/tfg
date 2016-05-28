@@ -40,7 +40,6 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
 
     transient Counter successCountMetric;
     transient Counter errorCountMetric;
-    transient Counter duplicatedCountMetric;
     transient Histogram executionDurationHistogram;
 
     @Override
@@ -65,12 +64,6 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
         errorCountMetric = Counter.build()
                 .name("storm_logpipeline_modelparser_error_total")
                 .help("CockroachModelParserBolt metric count")
-                .labelNames("type")
-                .register(collectorRegistry);
-
-        duplicatedCountMetric = Counter.build()
-                .name("storm_logpipeline_modelparser_dubs_total")
-                .help("CockroachModelParserBolt CHECK_EM metric count")
                 .labelNames("type")
                 .register(collectorRegistry);
 
@@ -112,7 +105,7 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
                         successCountMetric.labels(platform).inc();
                     } else {
                         log.error(String.format("Found duplicated raw-log [%s]", uuid));
-                        duplicatedCountMetric.inc();
+                        errorCountMetric.labels("dubs").inc();
                     }
 
                     timer.observeDuration();
