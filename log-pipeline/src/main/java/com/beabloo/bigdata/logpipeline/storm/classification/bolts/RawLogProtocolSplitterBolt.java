@@ -34,10 +34,10 @@ public class RawLogProtocolSplitterBolt extends LogPipelineBaseBolt {
 
     private OutputCollector outputCollector;
 
-    private transient RedisClient redisClient;
-    private transient StatefulRedisConnection<String, String> redisConnection;
-    private transient HashFunction hashFunction;
-    private transient Funnel<Tuple> funnel;
+    protected transient RedisClient redisClient;
+    protected transient StatefulRedisConnection<String, String> redisConnection;
+    protected transient HashFunction hashFunction;
+    protected transient Funnel<Tuple> funnel;
 
     private transient Counter successCountMetric;
     private transient Counter errorCountMetric;
@@ -135,12 +135,12 @@ public class RawLogProtocolSplitterBolt extends LogPipelineBaseBolt {
         redisClient.shutdown();
     }
 
-    private String getUniqueRawLogId(Tuple input) {
+    String getUniqueRawLogId(Tuple input) {
         HashCode hashCode = hashFunction.hashObject(input, funnel);
 
         StringBuilder build = new StringBuilder();
         build.append("storm-rawlog-");
-        build.append(hashCode.asLong());
+        build.append(hashCode.toString());
 
         return build.toString();
     }
