@@ -19,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 public class RawLogProtocolSplitterBolt extends LogPipelineBaseBolt {
@@ -35,18 +34,22 @@ public class RawLogProtocolSplitterBolt extends LogPipelineBaseBolt {
 
     private OutputCollector outputCollector;
 
-    private HashFunction hashFunction;
-    private Funnel<Tuple> funnel;
+    private transient RedisClient redisClient;
+    private transient StatefulRedisConnection<String, String> redisConnection;
+    private transient HashFunction hashFunction;
+    private transient Funnel<Tuple> funnel;
 
-    transient Counter successCountMetric;
-    transient Counter errorCountMetric;
-    transient Counter duplicatedCountMetric;
-    transient Histogram executionDurationHistogram;
+    private transient Counter successCountMetric;
+    private transient Counter errorCountMetric;
+    private transient Counter duplicatedCountMetric;
+    private transient Histogram executionDurationHistogram;
 
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
         super.prepare(stormConf, context, collector);
 
+        redisClient = RedisClient.create("redis://stats.local.vm:6379/0");
+        redisConnection = redisClient.connect();
         hashFunction = Hashing.murmur3_128();
         funnel = new TupleFunnel();
 
@@ -77,40 +80,42 @@ public class RawLogProtocolSplitterBolt extends LogPipelineBaseBolt {
 
     @Override
     public void processTuple(Tuple input) {
+        String tupleUuid = getUniqueRawLogId(input);
+
         Histogram.Timer timer = executionDurationHistogram.startTimer();
 
         try {
-            RedisClient client = RedisClient.create("redis://stats.local.vm:6379/0");;
-            StatefulRedisConnection<String, String> connection = client.connect();
-            RedisAsyncCommands<String, String> commands = connection.async();
+            RedisAsyncCommands<String, String> commands = redisConnection.async();
+            RedisFuture<Long> future = ((RedisHLLAsyncCommands) commands).pfadd(getTaskId(), tupleUuid);
 
-            RedisFuture<Long> future = ((RedisHLLAsyncCommands) commands).pfadd(getTaskId(), getUniqueRawLogId(input));
-            final Long currentlyAdded = future.get(1, TimeUnit.SECONDS);
+            future.thenAccept(currentlyAdded -> {
+                log.info(String.format("Added raw-log hash [%s] to redis. currentlyAdded [%s]", tupleUuid, currentlyAdded));
 
-            if ( currentlyAdded == 1l  ) {
-                String type = input.getStringByField("type");
-                if (type.startsWith("http") && cockroachUri.matcher(type).matches()) {
-                    log.info(String.format("Found new raw log for cockroach..."));
-                    outputCollector.emit(HTTP_COCKROACH_STREAM, input.getValues());
+                if ( currentlyAdded == 1l  ) {
+                    String type = input.getStringByField("type");
+                    if (type.startsWith("http") && cockroachUri.matcher(type).matches()) {
+                        log.info(String.format("Found new raw log for cockroach..."));
+                        outputCollector.emit(HTTP_COCKROACH_STREAM, input.getValues());
 
-                    successCountMetric.labels("cockroach").inc();
+                        successCountMetric.labels("cockroach").inc();
+                    } else {
+                        log.error(String.format("Unknown protocol [%s]", type));
+
+                        successCountMetric.labels("unknown").inc();
+                    }
                 } else {
-                    log.error(String.format("Unknown protocol [%s]", type));
-
-                    successCountMetric.labels("unknown").inc();
+                    log.error(String.format("Found duplicated raw-log [%s]", tupleUuid));
+                    duplicatedCountMetric.inc();
                 }
-            } else {
-                log.error(String.format("Found duplicated raw-log"));
-                duplicatedCountMetric.inc();
-            }
 
-            connection.close();
-            client.shutdown();
+                timer.observeDuration();
+                outputCollector.ack(input);
+            });
         } catch ( Exception ex ) {
             log.error(ex.getMessage(), ex);
 
             errorCountMetric.inc();
-        } finally {
+
             timer.observeDuration();
             outputCollector.ack(input);
         }
@@ -122,6 +127,12 @@ public class RawLogProtocolSplitterBolt extends LogPipelineBaseBolt {
 
         declarer.declareStream(HTTP_COCKROACH_STREAM, new Fields("timestamp", "type", "data"));
         declarer.declareStream(HTTP_EXANDS_STREAM, new Fields("timestamp", "type", "data"));
+    }
+
+    @Override
+    public void cleanup() {
+        redisConnection.close();
+        redisClient.shutdown();
     }
 
     private String getUniqueRawLogId(Tuple input) {
