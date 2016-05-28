@@ -144,8 +144,7 @@ public class RawLogProtocolSplitterBolt extends LogPipelineBaseBolt {
 
         @Override
         public void funnel(Tuple from, PrimitiveSink into) {
-            into.putLong(from.getLongByField("timestamp"))
-                    .putString(from.getStringByField("type"), Charsets.UTF_8)
+            into.putString(from.getStringByField("type"), Charsets.UTF_8)
                     .putString(from.getStringByField("data"), Charsets.UTF_8);
         }
 
