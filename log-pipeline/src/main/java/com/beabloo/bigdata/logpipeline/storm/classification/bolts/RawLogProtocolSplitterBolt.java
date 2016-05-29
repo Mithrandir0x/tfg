@@ -87,19 +87,19 @@ public class RawLogProtocolSplitterBolt extends LogPipelineBaseBolt {
 
         try {
             RedisAsyncCommands<String, String> commands = redisConnection.async();
-            RedisFuture<Long> future = ((RedisHLLAsyncCommands) commands).pfadd("st:lp:rl", uuid);
+            RedisFuture<Boolean> future = commands.hsetnx("st:lp:rl", uuid, "1");
 
             future.thenAccept(currentlyAdded -> {
                 log.info(String.format("Added raw-log hash [%s] to redis. currentlyAdded [%s]", uuid, currentlyAdded));
 
-                if ( currentlyAdded == 1L  ) {
+                if ( currentlyAdded ) {
                     String type = input.getStringByField("type");
                     if (type.startsWith("http") && cockroachUri.matcher(type).matches()) {
                         log.info(String.format("Found new raw log for cockroach..."));
                         outputCollector.emit(HTTP_COCKROACH_STREAM, input.getValues());
 
                         successCountMetric.labels("cockroach").inc();
-                    } else if ( currentlyAdded == 0L ) {
+                    } else {
                         log.error(String.format("Unknown protocol [%s]", type));
 
                         successCountMetric.labels("unknown").inc();
@@ -117,7 +117,7 @@ public class RawLogProtocolSplitterBolt extends LogPipelineBaseBolt {
                 if ( throwable != null ) {
                     log.error(throwable.getMessage(), throwable);
                 }
-                return -1L;
+                return false;
             });
         } catch ( Exception ex ) {
             log.error(ex.getMessage(), ex);
@@ -144,9 +144,9 @@ public class RawLogProtocolSplitterBolt extends LogPipelineBaseBolt {
     }
 
     String getUniqueRawLogId(Tuple input) {
-        //HashCode hashCode = hashFunction.hashObject(input, funnel);
-        //return hashCode.toString();
-        return String.format("%s_%s", input.getStringByField("type"), input.getStringByField("data"));
+        HashCode hashCode = hashFunction.hashObject(input, funnel);
+        return hashCode.toString();
+        //return String.format("%s_%s", input.getStringByField("type"), input.getStringByField("data"));
     }
 
     private String getNamespaceKey(Tuple input) {

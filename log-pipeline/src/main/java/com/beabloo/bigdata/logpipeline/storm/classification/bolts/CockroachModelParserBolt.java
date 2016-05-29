@@ -89,13 +89,14 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
             if ( cockroachLog != null ) {
                 String key = getNamespaceKey(cockroachLog);
                 String uuid = getUniqueCockroachLogId(cockroachLog);
+
                 RedisAsyncCommands<String, String> commands = redisConnection.async();
-                RedisFuture<Long> future = ((RedisHLLAsyncCommands) commands).pfadd(key, uuid);
+                RedisFuture<Boolean> future = commands.hsetnx(key, uuid, "1");
 
                 future.thenAccept(currentlyAdded -> {
                     log.info(String.format("Added cockroach-log hash [%s@%s] to redis. currentlyAdded [%s]", key, uuid, currentlyAdded));
 
-                    if ( currentlyAdded == 1L ) {
+                    if ( currentlyAdded ) {
                         log.info(String.format("Emitting value cockroachLog [%s]", cockroachLog));
                         outputCollector.emit(new Values(
                                 cockroachLog.getActivityDefinition().name(),
@@ -104,7 +105,7 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
                                 input.getLongByField("timestamp")));
 
                         successCountMetric.labels(platform).inc();
-                    } else if ( currentlyAdded == 0L ) {
+                    } else {
                         log.error(String.format("Found duplicated raw-log [%s]", uuid));
                         errorCountMetric.labels("dubs").inc();
                     }
@@ -117,7 +118,7 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
                     if ( throwable != null ) {
                         log.error(throwable.getMessage(), throwable);
                     }
-                    return -1L;
+                    return false;
                 });
             } else {
                 log.error("Invalid cockroach log received");
@@ -141,20 +142,20 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
     }
 
     String getUniqueCockroachLogId(CockroachLog input) {
-        //HashCode hashCode = hashFunction.hashObject(input, funnel);
-        //return hashCode.toString();
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(input.getOrganization());
-        stringBuilder.append(input.getStartEvent());
-
-        if ( input instanceof WifiPresenceLog ) {
-            WifiPresenceLog wifi = (WifiPresenceLog) input;
-            stringBuilder.append(wifi.getHotspot());
-            stringBuilder.append(wifi.getSensor());
-            stringBuilder.append(wifi.getDevice());
-        }
-
-        return stringBuilder.toString();
+        HashCode hashCode = hashFunction.hashObject(input, funnel);
+        return hashCode.toString();
+//        StringBuilder stringBuilder = new StringBuilder();
+//        stringBuilder.append(input.getOrganization());
+//        stringBuilder.append(input.getStartEvent());
+//
+//        if ( input instanceof WifiPresenceLog ) {
+//            WifiPresenceLog wifi = (WifiPresenceLog) input;
+//            stringBuilder.append(wifi.getHotspot());
+//            stringBuilder.append(wifi.getSensor());
+//            stringBuilder.append(wifi.getDevice());
+//        }
+//
+//        return stringBuilder.toString();
     }
 
     HashCode getCockroachLogHashCode(CockroachLog input) {
