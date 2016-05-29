@@ -103,13 +103,20 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
                                 input.getLongByField("timestamp")));
 
                         successCountMetric.labels(platform).inc();
-                    } else {
+                    } else if ( currentlyAdded == 0l ) {
                         log.error(String.format("Found duplicated raw-log [%s]", uuid));
                         errorCountMetric.labels("dubs").inc();
                     }
 
                     timer.observeDuration();
                     outputCollector.ack(input);
+                });
+
+                future.exceptionally(throwable -> {
+                    if ( throwable != null ) {
+                        log.error(throwable.getMessage(), throwable);
+                    }
+                    return -1l;
                 });
             } else {
                 log.error("Invalid cockroach log received");

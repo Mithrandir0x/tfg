@@ -111,6 +111,13 @@ public class RawLogProtocolSplitterBolt extends LogPipelineBaseBolt {
                 timer.observeDuration();
                 outputCollector.ack(input);
             });
+
+            future.exceptionally(throwable -> {
+                if ( throwable != null ) {
+                    log.error(throwable.getMessage(), throwable);
+                }
+                return -1l;
+            });
         } catch ( Exception ex ) {
             log.error(ex.getMessage(), ex);
 
