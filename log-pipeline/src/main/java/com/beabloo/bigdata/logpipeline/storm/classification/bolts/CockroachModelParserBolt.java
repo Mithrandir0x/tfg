@@ -141,8 +141,20 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
     }
 
     String getUniqueCockroachLogId(CockroachLog input) {
-        HashCode hashCode = hashFunction.hashObject(input, funnel);
-        return hashCode.toString();
+        //HashCode hashCode = hashFunction.hashObject(input, funnel);
+        //return hashCode.toString();
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(input.getOrganization());
+        stringBuilder.append(input.getStartEvent());
+
+        if ( input instanceof WifiPresenceLog ) {
+            WifiPresenceLog wifi = (WifiPresenceLog) input;
+            stringBuilder.append(wifi.getHotspot());
+            stringBuilder.append(wifi.getSensor());
+            stringBuilder.append(wifi.getDevice());
+        }
+
+        return stringBuilder.toString();
     }
 
     HashCode getCockroachLogHashCode(CockroachLog input) {
