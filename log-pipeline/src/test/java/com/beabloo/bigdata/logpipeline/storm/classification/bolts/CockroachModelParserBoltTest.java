@@ -1,10 +1,19 @@
 package com.beabloo.bigdata.logpipeline.storm.classification.bolts;
 
+import com.beabloo.bigdata.cockroach.model.CockroachLog;
 import com.beabloo.bigdata.model.WifiPresenceLog;
+import com.google.common.hash.HashCode;
+import com.google.common.io.BaseEncoding;
+import com.google.common.math.BigIntegerMath;
+import com.google.common.primitives.Bytes;
+import javafx.util.converter.BigIntegerStringConverter;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.junit.Test;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -15,6 +24,65 @@ import java.util.Map;
 import static org.mockito.Mockito.mock;
 
 public class CockroachModelParserBoltTest {
+
+    @Test
+    public void hashBucketCalculationTest() throws Exception {
+        String[] data = new String[] { "39159", "1464386400", "57469", "5171", "25481b8564d204c95515e723c16188fe" };
+        WifiPresenceLog log = new WifiPresenceLog();
+        log.setOrganization(Long.parseLong(data[0]));
+        log.setStartEvent(Long.parseLong(data[1]));
+        log.setHotspot(Long.parseLong(data[2]));
+        log.setSensor(Long.parseLong(data[3]));
+        log.setDevice(data[4]);
+
+        CockroachModelParserBolt bolt = new CockroachModelParserBolt();
+
+        Map conf = mock(Map.class);
+        TopologyContext context = mock(TopologyContext.class);
+        OutputCollector collector = mock(OutputCollector.class);
+
+        bolt.prepare(conf, context, collector);
+
+        HashCode hashCode = bolt.getCockroachLogHashCode(log);
+
+        long maxLong = 0x7fff_ffff_ffff_ffffL;
+        System.out.println(String.format("%32s [%s]", "maxLong", maxLong));
+
+        BigInteger maxBigInt = new BigInteger(new byte[] {
+                (byte) 0x7f,
+                (byte) 0xff,
+                (byte) 0xff,
+                (byte) 0xff,
+                (byte) 0xff,
+                (byte) 0xff,
+                (byte) 0xff,
+                (byte) 0xff,
+                (byte) 0xff,
+                (byte) 0xff,
+                (byte) 0xff,
+                (byte) 0xff,
+                (byte) 0xff,
+                (byte) 0xff,
+                (byte) 0xff,
+                (byte) 0xff });
+        System.out.println(String.format("%32s [%s]", "maxBigInt", maxBigInt));
+
+        BigDecimal bigdecimal = new BigDecimal(maxBigInt);
+
+        BigInteger bigint = new BigInteger(hashCode.asBytes());
+        System.out.println(String.format("%32s [%s]", "bigint", bigint));
+
+        System.out.println(String.format("%32s [%s]", "hashCode.bytes.len", hashCode.asBytes().length));
+
+        bigint = bigint.abs();
+        System.out.println(String.format("%32s [%s]", "bigint", bigint));
+
+        BigInteger division = BigIntegerMath.divide(bigint, new BigInteger("10000"), RoundingMode.CEILING);
+        System.out.println(String.format("%32s [%s]", "division", division));
+
+        String uuid = BaseEncoding.base64().encode(division.toByteArray());
+        System.out.println(String.format("%32s [%s]", "division.uuid", uuid));
+    }
 
     @Test
     public void hashDistributionTest() throws Exception {

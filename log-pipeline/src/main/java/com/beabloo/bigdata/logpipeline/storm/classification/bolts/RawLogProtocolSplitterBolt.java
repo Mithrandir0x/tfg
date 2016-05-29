@@ -18,6 +18,7 @@ import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Calendar;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -86,19 +87,19 @@ public class RawLogProtocolSplitterBolt extends LogPipelineBaseBolt {
 
         try {
             RedisAsyncCommands<String, String> commands = redisConnection.async();
-            RedisFuture<Long> future = ((RedisHLLAsyncCommands) commands).pfadd("storm:logpipeline:rawlog", uuid);
+            RedisFuture<Long> future = ((RedisHLLAsyncCommands) commands).pfadd("st:lp:rl", uuid);
 
             future.thenAccept(currentlyAdded -> {
                 log.info(String.format("Added raw-log hash [%s] to redis. currentlyAdded [%s]", uuid, currentlyAdded));
 
-                if ( currentlyAdded == 1l  ) {
+                if ( currentlyAdded == 1L  ) {
                     String type = input.getStringByField("type");
                     if (type.startsWith("http") && cockroachUri.matcher(type).matches()) {
                         log.info(String.format("Found new raw log for cockroach..."));
                         outputCollector.emit(HTTP_COCKROACH_STREAM, input.getValues());
 
                         successCountMetric.labels("cockroach").inc();
-                    } else {
+                    } else if ( currentlyAdded == 0L ) {
                         log.error(String.format("Unknown protocol [%s]", type));
 
                         successCountMetric.labels("unknown").inc();
@@ -116,7 +117,7 @@ public class RawLogProtocolSplitterBolt extends LogPipelineBaseBolt {
                 if ( throwable != null ) {
                     log.error(throwable.getMessage(), throwable);
                 }
-                return -1l;
+                return -1L;
             });
         } catch ( Exception ex ) {
             log.error(ex.getMessage(), ex);
@@ -143,8 +144,18 @@ public class RawLogProtocolSplitterBolt extends LogPipelineBaseBolt {
     }
 
     String getUniqueRawLogId(Tuple input) {
-        HashCode hashCode = hashFunction.hashObject(input, funnel);
-        return hashCode.toString();
+        //HashCode hashCode = hashFunction.hashObject(input, funnel);
+        //return hashCode.toString();
+        return String.format("%s_%s", input.getStringByField("type"), input.getStringByField("data"));
+    }
+
+    private String getNamespaceKey(Tuple input) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(input.getLongByField("timestamp"));
+        return String.format("st:lp:mp:%s%s%s",
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH) + 1,
+                calendar.get(Calendar.DAY_OF_MONTH));
     }
 
     private static class TupleFunnel implements Funnel<Tuple> {

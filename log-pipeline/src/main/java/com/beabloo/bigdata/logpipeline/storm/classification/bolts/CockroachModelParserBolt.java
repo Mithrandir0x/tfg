@@ -87,14 +87,15 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
             CockroachLog cockroachLog = cockroachModelDeserialize.deserialize(platform, paramsValues, extraParams);
 
             if ( cockroachLog != null ) {
+                String key = getNamespaceKey(cockroachLog);
                 String uuid = getUniqueCockroachLogId(cockroachLog);
                 RedisAsyncCommands<String, String> commands = redisConnection.async();
-                RedisFuture<Long> future = ((RedisHLLAsyncCommands) commands).pfadd("storm:logpipeline:modelparser", uuid);
+                RedisFuture<Long> future = ((RedisHLLAsyncCommands) commands).pfadd(key, uuid);
 
                 future.thenAccept(currentlyAdded -> {
-                    log.info(String.format("Added cockroach-log hash [%s] to redis. currentlyAdded [%s]", uuid, currentlyAdded));
+                    log.info(String.format("Added cockroach-log hash [%s@%s] to redis. currentlyAdded [%s]", key, uuid, currentlyAdded));
 
-                    if ( currentlyAdded == 1l  ) {
+                    if ( currentlyAdded == 1L ) {
                         log.info(String.format("Emitting value cockroachLog [%s]", cockroachLog));
                         outputCollector.emit(new Values(
                                 cockroachLog.getActivityDefinition().name(),
@@ -103,7 +104,7 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
                                 input.getLongByField("timestamp")));
 
                         successCountMetric.labels(platform).inc();
-                    } else if ( currentlyAdded == 0l ) {
+                    } else if ( currentlyAdded == 0L ) {
                         log.error(String.format("Found duplicated raw-log [%s]", uuid));
                         errorCountMetric.labels("dubs").inc();
                     }
@@ -116,7 +117,7 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
                     if ( throwable != null ) {
                         log.error(throwable.getMessage(), throwable);
                     }
-                    return -1l;
+                    return -1L;
                 });
             } else {
                 log.error("Invalid cockroach log received");
@@ -142,6 +143,19 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
     String getUniqueCockroachLogId(CockroachLog input) {
         HashCode hashCode = hashFunction.hashObject(input, funnel);
         return hashCode.toString();
+    }
+
+    HashCode getCockroachLogHashCode(CockroachLog input) {
+        return hashFunction.hashObject(input, funnel);
+    }
+
+    private String getNamespaceKey(CockroachLog input) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(input.getStartEvent() * 1000);
+        return String.format("st:lp:mp:%s%s%s",
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH) + 1,
+                calendar.get(Calendar.DAY_OF_MONTH));
     }
 
     private static class CockroachLogFunnel implements Funnel<CockroachLog> {
