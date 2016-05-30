@@ -10,6 +10,7 @@ import com.lambdaworks.redis.RedisFuture;
 import com.lambdaworks.redis.api.StatefulRedisConnection;
 import com.lambdaworks.redis.api.async.RedisAsyncCommands;
 import com.lambdaworks.redis.api.async.RedisHLLAsyncCommands;
+import com.lambdaworks.redis.codec.ByteArrayCodec;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Histogram;
@@ -34,7 +35,7 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
     private CockroachModelDeserializer cockroachModelDeserialize;
 
     protected transient RedisClient redisClient;
-    protected transient StatefulRedisConnection<String, String> redisConnection;
+    protected transient StatefulRedisConnection<byte[], byte[]> redisConnection;
     protected transient HashFunction hashFunction;
     protected transient Funnel<CockroachLog> funnel;
 
@@ -47,7 +48,7 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
         super.prepare(stormConf, context, collector);
 
         redisClient = RedisClient.create("redis://stats.local.vm:6379/0");
-        redisConnection = redisClient.connect();
+        redisConnection = redisClient.connect(new ByteArrayCodec());
         hashFunction = Hashing.murmur3_128();
         funnel = new CockroachLogFunnel();
 
@@ -90,13 +91,13 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
                 String key = getNamespaceKey(cockroachLog);
                 String uuid = getUniqueCockroachLogId(cockroachLog);
 
-                RedisAsyncCommands<String, String> commands = redisConnection.async();
-                RedisFuture<Boolean> future = commands.hsetnx(key, uuid, "1");
+                RedisAsyncCommands<byte[], byte[]> commands = redisConnection.async();
+                RedisFuture<Long> future = ((RedisHLLAsyncCommands) commands).pfadd(key.getBytes(), getByteArrayCockroachLogId(cockroachLog));
 
                 future.thenAccept(currentlyAdded -> {
                     log.info(String.format("Added cockroach-log hash [%s@%s] to redis. currentlyAdded [%s]", key, uuid, currentlyAdded));
 
-                    if ( currentlyAdded ) {
+                    if ( currentlyAdded == 1L ) {
                         log.info(String.format("Emitting value cockroachLog [%s]", cockroachLog));
                         outputCollector.emit(new Values(
                                 cockroachLog.getActivityDefinition().name(),
@@ -105,7 +106,7 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
                                 input.getLongByField("timestamp")));
 
                         successCountMetric.labels(platform).inc();
-                    } else {
+                    } else if ( currentlyAdded == 0L ) {
                         log.error(String.format("Found duplicated raw-log [%s]", uuid));
                         errorCountMetric.labels("dubs").inc();
                     }
@@ -118,7 +119,7 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
                     if ( throwable != null ) {
                         log.error(throwable.getMessage(), throwable);
                     }
-                    return false;
+                    return -1L;
                 });
             } else {
                 log.error("Invalid cockroach log received");
@@ -139,6 +140,11 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
         super.declareOutputFields(declarer);
 
         declarer.declare(new Fields("activity", "log", "startEvent", "timestamp"));
+    }
+
+    byte[] getByteArrayCockroachLogId(CockroachLog input) {
+        HashCode hashCode = hashFunction.hashObject(input, funnel);
+        return hashCode.asBytes();
     }
 
     String getUniqueCockroachLogId(CockroachLog input) {
