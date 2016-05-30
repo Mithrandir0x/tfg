@@ -152,7 +152,7 @@ public class RawLogProtocolSplitterBolt extends LogPipelineBaseBolt {
     private String getNamespaceKey(Tuple input) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(input.getLongByField("timestamp"));
-        return String.format("st:lp:mp:%s%s%s",
+        return String.format("st:lp:mp:%02d%02d%02d",
                 calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH) + 1,
                 calendar.get(Calendar.DAY_OF_MONTH));
