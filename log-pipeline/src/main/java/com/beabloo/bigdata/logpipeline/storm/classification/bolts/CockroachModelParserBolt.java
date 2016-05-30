@@ -11,6 +11,7 @@ import com.lambdaworks.redis.api.StatefulRedisConnection;
 import com.lambdaworks.redis.api.async.RedisAsyncCommands;
 import com.lambdaworks.redis.api.async.RedisHLLAsyncCommands;
 import com.lambdaworks.redis.codec.ByteArrayCodec;
+import com.lambdaworks.redis.codec.Utf8StringCodec;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Histogram;
@@ -35,7 +36,7 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
     private CockroachModelDeserializer cockroachModelDeserialize;
 
     protected transient RedisClient redisClient;
-    protected transient StatefulRedisConnection<byte[], byte[]> redisConnection;
+    protected transient StatefulRedisConnection<String, String> redisConnection;
     protected transient HashFunction hashFunction;
     protected transient Funnel<CockroachLog> funnel;
 
@@ -48,7 +49,7 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
         super.prepare(stormConf, context, collector);
 
         redisClient = RedisClient.create("redis://stats.local.vm:6379/0");
-        redisConnection = redisClient.connect(new ByteArrayCodec());
+        redisConnection = redisClient.connect(new Utf8StringCodec());
         hashFunction = Hashing.murmur3_128();
         funnel = new CockroachLogFunnel();
 
@@ -91,8 +92,8 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
                 String key = getNamespaceKey(cockroachLog);
                 String uuid = getUniqueCockroachLogId(cockroachLog);
 
-                RedisAsyncCommands<byte[], byte[]> commands = redisConnection.async();
-                RedisFuture<Long> future = ((RedisHLLAsyncCommands) commands).pfadd(key.getBytes(), getByteArrayCockroachLogId(cockroachLog));
+                RedisAsyncCommands<String, String> commands = redisConnection.async();
+                RedisFuture<Long> future = ((RedisHLLAsyncCommands) commands).pfadd(key, uuid);
 
                 future.thenAccept(currentlyAdded -> {
                     log.info(String.format("Added cockroach-log hash [%s@%s] to redis. currentlyAdded [%s]", key, uuid, currentlyAdded));
