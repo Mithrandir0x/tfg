@@ -6,6 +6,9 @@ import com.google.common.hash.HashCode;
 import com.google.common.io.BaseEncoding;
 import com.google.common.math.BigIntegerMath;
 import com.google.common.primitives.Bytes;
+import com.lambdaworks.redis.RedisFuture;
+import com.lambdaworks.redis.api.async.RedisAsyncCommands;
+import com.lambdaworks.redis.api.async.RedisHLLAsyncCommands;
 import javafx.util.converter.BigIntegerStringConverter;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -20,10 +23,56 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Stream;
 
 import static org.mockito.Mockito.mock;
 
 public class CockroachModelParserBoltTest {
+
+    @Test
+    public void verifyHyperLogLogTest() throws Exception {
+        final BlockingQueue<String[]> queue = new ArrayBlockingQueue<>(1);
+
+        final ExecutorService consumerService = Executors.newSingleThreadExecutor();
+
+        WifiPresenceLog log = new WifiPresenceLog();
+
+        CockroachModelParserBolt bolt = new CockroachModelParserBolt();
+
+        Map conf = mock(Map.class);
+        TopologyContext context = mock(TopologyContext.class);
+        OutputCollector collector = mock(OutputCollector.class);
+
+        bolt.prepare(conf, context, collector);
+
+        String[][] dataset = CockroachLogSamples.getDataSet("../datasets/unique_devices_1M.csv", 1000000);
+
+        Stream<String[]> stream = Stream.of(dataset);
+
+        stream.forEach(data -> {
+            try {
+                log.setOrganization(Long.parseLong(data[0]));
+                log.setStartEvent(Long.parseLong(data[1]));
+                log.setHotspot(Long.parseLong(data[2]));
+                log.setSensor(Long.parseLong(data[3]));
+                log.setDevice(data[4]);
+
+                String key = bolt.getNamespaceKey(log);
+                String uuid = bolt.getUniqueCockroachLogId(log);
+
+                RedisAsyncCommands<String, String> commands = bolt.redisConnection.async();
+                RedisFuture<Long> future = ((RedisHLLAsyncCommands) commands).pfadd(key, uuid);
+                Long currentlyAdded = future.get();
+                System.out.println(String.format("key [%s] currentlyAdded [%s]", key, currentlyAdded));
+            } catch ( Exception ex ) {
+                ex.printStackTrace();
+            }
+        });
+    }
 
     @Test
     public void hashBucketCalculationTest() throws Exception {
@@ -84,9 +133,9 @@ public class CockroachModelParserBoltTest {
         System.out.println(String.format("%32s [%s]", "division.uuid", uuid));
     }
 
-    @Test
+    /* @Test
     public void hashDistributionTest() throws Exception {
-        /* WifiPresenceLog log = new WifiPresenceLog();
+        WifiPresenceLog log = new WifiPresenceLog();
 
         CockroachModelParserBolt bolt = new CockroachModelParserBolt();
 
@@ -136,7 +185,7 @@ public class CockroachModelParserBoltTest {
             lines.add("pfadd STORM-PIPELINE-COCKROACH-MODEL-PARSER " + hash);
         }
 
-        Files.write(Paths.get("../datasets/unique_devices_1M.hashes.log"), lines); */
-    }
+        Files.write(Paths.get("../datasets/unique_devices_1M.hashes.log"), lines);
+    } */
 
 }

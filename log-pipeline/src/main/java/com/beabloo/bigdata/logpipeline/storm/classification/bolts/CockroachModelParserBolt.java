@@ -169,7 +169,7 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
         return hashFunction.hashObject(input, funnel);
     }
 
-    private String getNamespaceKey(CockroachLog input) {
+    String getNamespaceKey(CockroachLog input) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(input.getStartEvent() * 1000);
         return String.format("st:lp:mp:%02d%02d%02d",
