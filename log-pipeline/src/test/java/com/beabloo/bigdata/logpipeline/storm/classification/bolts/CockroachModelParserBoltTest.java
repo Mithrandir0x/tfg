@@ -12,6 +12,7 @@ import com.lambdaworks.redis.api.async.RedisHLLAsyncCommands;
 import javafx.util.converter.BigIntegerStringConverter;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.math.BigDecimal;
@@ -61,11 +62,11 @@ public class CockroachModelParserBoltTest {
                 log.setSensor(Long.parseLong(data[3]));
                 log.setDevice(data[4]);
 
-                String key = bolt.getNamespaceKey(log);
+                String key = "test:" + bolt.getNamespaceKey(log);
                 String uuid = bolt.getUniqueCockroachLogId(log);
 
                 RedisAsyncCommands<String, String> commands = bolt.redisConnection.async();
-                RedisFuture<Long> future = ((RedisHLLAsyncCommands) commands).pfadd("test:" + key, uuid);
+                RedisFuture<Long> future = ((RedisHLLAsyncCommands) commands).pfadd(key, uuid);
                 Long currentlyAdded = future.get();
                 System.out.println(String.format("key [%s] currentlyAdded [%s]", key, currentlyAdded));
             } catch ( Exception ex ) {
@@ -74,7 +75,7 @@ public class CockroachModelParserBoltTest {
         });
     }
 
-    @Test
+    @Ignore
     public void hashBucketCalculationTest() throws Exception {
         String[] data = new String[] { "39159", "1464386400", "57469", "5171", "25481b8564d204c95515e723c16188fe" };
         WifiPresenceLog log = new WifiPresenceLog();
@@ -133,7 +134,7 @@ public class CockroachModelParserBoltTest {
         System.out.println(String.format("%32s [%s]", "division.uuid", uuid));
     }
 
-    /* @Test
+    @Ignore
     public void hashDistributionTest() throws Exception {
         WifiPresenceLog log = new WifiPresenceLog();
 
@@ -186,6 +187,6 @@ public class CockroachModelParserBoltTest {
         }
 
         Files.write(Paths.get("../datasets/unique_devices_1M.hashes.log"), lines);
-    } */
+    }
 
 }
