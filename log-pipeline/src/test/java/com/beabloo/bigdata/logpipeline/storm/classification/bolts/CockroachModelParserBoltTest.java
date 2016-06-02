@@ -65,7 +65,7 @@ public class CockroachModelParserBoltTest {
                 String uuid = bolt.getUniqueCockroachLogId(log);
 
                 RedisAsyncCommands<String, String> commands = bolt.redisConnection.async();
-                RedisFuture<Long> future = ((RedisHLLAsyncCommands) commands).pfadd(key, uuid);
+                RedisFuture<Long> future = ((RedisHLLAsyncCommands) commands).pfadd("test:" + key, uuid);
                 Long currentlyAdded = future.get();
                 System.out.println(String.format("key [%s] currentlyAdded [%s]", key, currentlyAdded));
             } catch ( Exception ex ) {
