@@ -81,6 +81,12 @@ dependencies {
     testCompile "org.mockito:mockito-core:1.+"
 }
 
+test {
+    afterTest { desc, result ->
+        println "Executing test ${desc.name} [${desc.className}] with result: ${result.resultType}"
+    }
+}
+
 fatJar {
     zip64 true
 }
