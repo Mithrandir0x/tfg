@@ -79,6 +79,7 @@ dependencies {
     testCompile 'junit:junit:4.11'
     testCompile "org.apache.storm:storm-core:$stormVersion"
     testCompile "org.mockito:mockito-core:1.+"
+    testCompile "com.baqend:bloom-filter:1.0.7"
 }
 
 test {

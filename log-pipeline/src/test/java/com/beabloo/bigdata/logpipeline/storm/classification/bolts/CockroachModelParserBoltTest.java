@@ -34,7 +34,7 @@ import static org.mockito.Mockito.mock;
 
 public class CockroachModelParserBoltTest {
 
-    @Test
+    @Ignore
     public void verifyHyperLogLogTest() throws Exception {
         final BlockingQueue<String[]> queue = new ArrayBlockingQueue<>(1);
 
