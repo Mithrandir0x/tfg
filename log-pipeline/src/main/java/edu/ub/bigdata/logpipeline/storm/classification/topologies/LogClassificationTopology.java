@@ -38,7 +38,7 @@ public class LogClassificationTopology {
                     .shuffleGrouping(YaelpUnpackerBolt.ID);
 
             LogHdfsBolt hdfsBolt = new LogHdfsBolt("/engine2_big_data/yaelp/");
-            builder.setBolt("COCKROACH_HDFS_BOLT_ID", hdfsBolt)
+            builder.setBolt("YAELP_HDFS_BOLT_ID", hdfsBolt)
                     .shuffleGrouping(YaelpModelParserBolt.ID);
 
             config.setNumWorkers(4);

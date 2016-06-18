@@ -8,11 +8,11 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 
 import java.net.URLDecoder;
 
-public class CockroachLogContainerDeserializer {
+public class YaelpEventContainerDeserializer {
 
     private ObjectMapper objectMapper;
 
-    public CockroachLogContainerDeserializer() {
+    public YaelpEventContainerDeserializer() {
         objectMapper = new ObjectMapper();
         SimpleModule simpleModule = new SimpleModule("UNK", Version.unknownVersion());
         simpleModule.addDeserializer(YaelpRawEvent.class, new YaelpRawEventFastDeserializer());

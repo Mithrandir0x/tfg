@@ -28,7 +28,7 @@ public class YaelpModelParserBolt extends LogPipelineBaseBolt {
 
     private static final Logger log = LoggerFactory.getLogger(YaelpModelParserBolt.class);
 
-    public static final String ID = "COCKROACH_MODEL_PARSER_BOLT_ID";
+    public static final String ID = "YAELP_MODEL_PARSER_BOLT_ID";
 
     private OutputCollector outputCollector;
     private YaelpModelDeserializer cockroachModelDeserialize;
@@ -79,12 +79,12 @@ public class YaelpModelParserBolt extends LogPipelineBaseBolt {
 
         try {
             String platform = input.getStringByField("environment");
-            String paramsValues = input.getStringByField("paramsValues");
-            String extraParams = input.getStringByField("extraParams");
+            String data = input.getStringByField("data");
+            String meta = input.getStringByField("meta");
 
-            log.info(String.format("Received new trigger from environment [%s] paramsValues [%s] extraParams [%s]", platform, paramsValues, extraParams));
+            log.info(String.format("Received new trigger from environment [%s] data [%s] meta [%s]", platform, data, meta));
 
-            YaelpLog yaelpLog = cockroachModelDeserialize.deserialize(platform, paramsValues, extraParams);
+            YaelpLog yaelpLog = cockroachModelDeserialize.deserialize(platform, data, meta);
 
             if ( yaelpLog != null ) {
                 String key = getNamespaceKey(yaelpLog);

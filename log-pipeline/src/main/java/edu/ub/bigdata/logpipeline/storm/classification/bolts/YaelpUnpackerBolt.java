@@ -123,7 +123,7 @@ public class YaelpUnpackerBolt extends LogPipelineBaseBolt {
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
         super.declareOutputFields(declarer);
 
-        declarer.declare(new Fields("timestamp", "environment", "paramsValues", "extraParams"));
+        declarer.declare(new Fields("timestamp", "environment", "data", "meta"));
     }
 
     protected String getJson(String rawData) {
