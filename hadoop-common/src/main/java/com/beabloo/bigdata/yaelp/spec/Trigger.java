@@ -1,6 +1,6 @@
-package com.beabloo.bigdata.cockroach.spec;
+package com.beabloo.bigdata.yaelp.spec;
 
-public enum Event {
+public enum Trigger {
 
     UNKNOWN(""),
     IMPRESSION("1"),
@@ -13,12 +13,12 @@ public enum Event {
 
     private String id;
 
-    Event(String id) {
+    Trigger(String id) {
         this.id = id;
     }
 
-    public static Event getEvent(String id) {
-        for ( Event e : values() ) {
+    public static Trigger getTrigger(String id) {
+        for ( Trigger e : values() ) {
             if ( e.id.equalsIgnoreCase(id) ){
                 return e;
             }

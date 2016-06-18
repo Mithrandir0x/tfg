@@ -1,7 +1,7 @@
-package com.beabloo.bigdata.cockroach.serdes;
+package com.beabloo.bigdata.yaelp.serdes;
 
-import com.beabloo.bigdata.cockroach.model.CockroachEventHttpRequestContainer;
-import com.beabloo.bigdata.cockroach.model.ParamsContainer;
+import com.beabloo.bigdata.yaelp.model.YaelpEventContainer;
+import com.beabloo.bigdata.yaelp.model.YaelpRawEvent;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -15,12 +15,12 @@ public class CockroachLogContainerDeserializer {
     public CockroachLogContainerDeserializer() {
         objectMapper = new ObjectMapper();
         SimpleModule simpleModule = new SimpleModule("UNK", Version.unknownVersion());
-        simpleModule.addDeserializer(ParamsContainer.class, new ParamsContainerFastDeserializer());
+        simpleModule.addDeserializer(YaelpRawEvent.class, new YaelpRawEventFastDeserializer());
         objectMapper.registerModule(simpleModule);
     }
 
-    public CockroachEventHttpRequestContainer deserialize(String json) throws Exception {
-        return objectMapper.readValue(URLDecoder.decode(json, "UTF-8"), CockroachEventHttpRequestContainer.class);
+    public YaelpEventContainer deserialize(String json) throws Exception {
+        return objectMapper.readValue(URLDecoder.decode(json, "UTF-8"), YaelpEventContainer.class);
     }
 
 }

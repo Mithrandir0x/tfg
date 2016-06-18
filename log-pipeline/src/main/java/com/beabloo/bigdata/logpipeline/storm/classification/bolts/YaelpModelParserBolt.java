@@ -1,7 +1,7 @@
 package com.beabloo.bigdata.logpipeline.storm.classification.bolts;
 
-import com.beabloo.bigdata.cockroach.model.CockroachLog;
-import com.beabloo.bigdata.cockroach.serdes.CockroachModelDeserializer;
+import com.beabloo.bigdata.yaelp.model.YaelpLog;
+import com.beabloo.bigdata.yaelp.serdes.YaelpModelDeserializer;
 import com.beabloo.bigdata.model.WifiPresenceLog;
 import com.google.common.base.Charsets;
 import com.google.common.hash.*;
@@ -9,8 +9,6 @@ import com.lambdaworks.redis.RedisClient;
 import com.lambdaworks.redis.RedisFuture;
 import com.lambdaworks.redis.api.StatefulRedisConnection;
 import com.lambdaworks.redis.api.async.RedisAsyncCommands;
-import com.lambdaworks.redis.api.async.RedisHLLAsyncCommands;
-import com.lambdaworks.redis.codec.ByteArrayCodec;
 import com.lambdaworks.redis.codec.Utf8StringCodec;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Counter;
@@ -26,19 +24,19 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-public class CockroachModelParserBolt extends LogPipelineBaseBolt {
+public class YaelpModelParserBolt extends LogPipelineBaseBolt {
 
-    private static final Logger log = LoggerFactory.getLogger(CockroachModelParserBolt.class);
+    private static final Logger log = LoggerFactory.getLogger(YaelpModelParserBolt.class);
 
     public static final String ID = "COCKROACH_MODEL_PARSER_BOLT_ID";
 
     private OutputCollector outputCollector;
-    private CockroachModelDeserializer cockroachModelDeserialize;
+    private YaelpModelDeserializer cockroachModelDeserialize;
 
     protected transient RedisClient redisClient;
     protected transient StatefulRedisConnection<String, String> redisConnection;
     protected transient HashFunction hashFunction;
-    protected transient Funnel<CockroachLog> funnel;
+    protected transient Funnel<YaelpLog> funnel;
 
     transient Counter successCountMetric;
     transient Counter errorCountMetric;
@@ -54,24 +52,24 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
         funnel = new CockroachLogFunnel();
 
         outputCollector = collector;
-        cockroachModelDeserialize = new CockroachModelDeserializer();
+        cockroachModelDeserialize = new YaelpModelDeserializer();
         CollectorRegistry collectorRegistry = getCollectorRegistry();
 
         successCountMetric = Counter.build()
                 .name("storm_logpipeline_modelparser_success_total")
-                .help("CockroachModelParserBolt metric count")
-                .labelNames("platform")
+                .help("YaelpModelParserBolt metric count")
+                .labelNames("environment")
                 .register(collectorRegistry);
 
         errorCountMetric = Counter.build()
                 .name("storm_logpipeline_modelparser_error_total")
-                .help("CockroachModelParserBolt metric count")
+                .help("YaelpModelParserBolt metric count")
                 .labelNames("type")
                 .register(collectorRegistry);
 
         executionDurationHistogram = Histogram.build()
                 .name("storm_logpipeline_modelparser_execution_duration")
-                .help("CockroachModelParserBolt metric count")
+                .help("YaelpModelParserBolt metric count")
                 .register(collectorRegistry);
     }
 
@@ -80,30 +78,30 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
         Histogram.Timer timer = executionDurationHistogram.startTimer();
 
         try {
-            String platform = input.getStringByField("platform");
+            String platform = input.getStringByField("environment");
             String paramsValues = input.getStringByField("paramsValues");
             String extraParams = input.getStringByField("extraParams");
 
-            log.info(String.format("Received new event from platform [%s] paramsValues [%s] extraParams [%s]", platform, paramsValues, extraParams));
+            log.info(String.format("Received new trigger from environment [%s] paramsValues [%s] extraParams [%s]", platform, paramsValues, extraParams));
 
-            CockroachLog cockroachLog = cockroachModelDeserialize.deserialize(platform, paramsValues, extraParams);
+            YaelpLog yaelpLog = cockroachModelDeserialize.deserialize(platform, paramsValues, extraParams);
 
-            if ( cockroachLog != null ) {
-                String key = getNamespaceKey(cockroachLog);
-                String uuid = getUniqueCockroachLogId(cockroachLog);
+            if ( yaelpLog != null ) {
+                String key = getNamespaceKey(yaelpLog);
+                String uuid = getUniqueCockroachLogId(yaelpLog);
 
                 RedisAsyncCommands<String, String> commands = redisConnection.async();
                 RedisFuture<Boolean> future = commands.hsetnx(key, uuid, "1");
 
                 future.thenAccept(currentlyAdded -> {
-                    log.info(String.format("Added cockroach-log hash [%s@%s] to redis. currentlyAdded [%s]", key, uuid, currentlyAdded));
+                    log.info(String.format("Added yaelp-log hash [%s@%s] to redis. currentlyAdded [%s]", key, uuid, currentlyAdded));
 
                     if ( currentlyAdded ) {
-                        log.info(String.format("Emitting value cockroachLog [%s]", cockroachLog));
+                        log.info(String.format("Emitting value yaelpLog [%s]", yaelpLog));
                         outputCollector.emit(new Values(
-                                cockroachLog.getActivityDefinition().name(),
-                                cockroachLog,
-                                cockroachLog.getStartEvent(),
+                                yaelpLog.getActivityDefinition().name(),
+                                yaelpLog,
+                                yaelpLog.getStartEvent(),
                                 input.getLongByField("timestamp")));
 
                         successCountMetric.labels(platform).inc();
@@ -123,7 +121,7 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
                     return false;
                 });
             } else {
-                log.error("Invalid cockroach log received");
+                log.error("Invalid yaelp log received");
                 errorCountMetric.labels("badformat").inc();
             }
         } catch ( Exception ex ) {
@@ -143,12 +141,12 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
         declarer.declare(new Fields("activity", "log", "startEvent", "timestamp"));
     }
 
-    byte[] getByteArrayCockroachLogId(CockroachLog input) {
+    byte[] getByteArrayCockroachLogId(YaelpLog input) {
         HashCode hashCode = hashFunction.hashObject(input, funnel);
         return hashCode.asBytes();
     }
 
-    String getUniqueCockroachLogId(CockroachLog input) {
+    String getUniqueCockroachLogId(YaelpLog input) {
         HashCode hashCode = hashFunction.hashObject(input, funnel);
         return hashCode.toString();
 //        StringBuilder stringBuilder = new StringBuilder();
@@ -165,11 +163,11 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
 //        return stringBuilder.toString();
     }
 
-    HashCode getCockroachLogHashCode(CockroachLog input) {
+    HashCode getCockroachLogHashCode(YaelpLog input) {
         return hashFunction.hashObject(input, funnel);
     }
 
-    String getNamespaceKey(CockroachLog input) {
+    String getNamespaceKey(YaelpLog input) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(input.getStartEvent() * 1000);
         return String.format("st:lp:mp:%02d%02d%02d",
@@ -178,10 +176,10 @@ public class CockroachModelParserBolt extends LogPipelineBaseBolt {
                 calendar.get(Calendar.DAY_OF_MONTH));
     }
 
-    private static class CockroachLogFunnel implements Funnel<CockroachLog> {
+    private static class CockroachLogFunnel implements Funnel<YaelpLog> {
 
         @Override
-        public void funnel(CockroachLog from, PrimitiveSink into) {
+        public void funnel(YaelpLog from, PrimitiveSink into) {
             into.putLong(from.getOrganization())
                     .putLong(from.getStartEvent());
 

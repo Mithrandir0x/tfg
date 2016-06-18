@@ -1,6 +1,6 @@
 package com.beabloo.bigdata.logpipeline.storm.classification.bolts.hdfs;
 
-import com.beabloo.bigdata.cockroach.spec.ActivityDefinition;
+import com.beabloo.bigdata.yaelp.spec.ActivityDefinition;
 import org.apache.storm.hdfs.common.Partitioner;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;

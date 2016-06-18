@@ -35,7 +35,6 @@ public class CockroachHttpLogListenerServlet extends AbstractHttpLogListenerServ
         response.sendError(400, "Invalid log request");
     }
 
-    @Override
     public void onException(HttpServletRequest request, HttpServletResponse response, Throwable ex) throws ServletException, IOException {
         response.sendError(500, "Unexpected server error");
     }
@@ -49,7 +48,7 @@ public class CockroachHttpLogListenerServlet extends AbstractHttpLogListenerServ
         return isValid;
     }
 
-    public RawLog getLogObject(HttpServletRequest request) {
+    public RawLog getRawLog(HttpServletRequest request) {
         RawLog rawLog = new RawLog();
 
         rawLog.setTimestamp((new Date()).getTime());
@@ -65,7 +64,7 @@ public class CockroachHttpLogListenerServlet extends AbstractHttpLogListenerServ
      *
      * @param rawLog
      */
-    public void onStoreLogObject(RawLog rawLog) {
+    public void onStoreRawLog(RawLog rawLog) {
         System.out.println("Storing message...");
     }
 

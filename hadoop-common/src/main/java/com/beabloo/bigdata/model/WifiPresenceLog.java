@@ -1,38 +1,38 @@
 package com.beabloo.bigdata.model;
 
-import com.beabloo.bigdata.cockroach.annotations.Activity;
-import com.beabloo.bigdata.cockroach.model.CockroachLog;
-import com.beabloo.bigdata.cockroach.spec.Event;
-import com.beabloo.bigdata.cockroach.annotations.Parameter;
-import com.beabloo.bigdata.cockroach.spec.Platform;
+import com.beabloo.bigdata.yaelp.annotations.Activity;
+import com.beabloo.bigdata.yaelp.model.YaelpLog;
+import com.beabloo.bigdata.yaelp.spec.Trigger;
+import com.beabloo.bigdata.yaelp.annotations.Property;
+import com.beabloo.bigdata.yaelp.spec.Environment;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
-@Activity(platform = Platform.WIFI, event = Event.PRESENCE)
+@Activity(environment = Environment.WIFI, trigger = Trigger.PRESENCE)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class WifiPresenceLog extends CockroachLog {
+public class WifiPresenceLog extends YaelpLog {
 
-    @Parameter
+    @Property
     @NotNull(message = "[device] cannot be null")
     private String device;
 
-    @Parameter
+    @Property
     @NotNull(message = "[oui] cannot be null")
     @Pattern(regexp="^[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}$",
         message="[oui] value is not acceptable")
     private String oui;
 
-    @Parameter
+    @Property
     @NotNull(message = "[sensor] cannot be null")
     private Long sensor;
 
-    @Parameter
+    @Property
     @NotNull(message = "[hotspot] cannot be null")
     private Long hotspot;
 
-    @Parameter
+    @Property
     @NotNull(message = "[power] cannot be null")
     private Integer power;
 

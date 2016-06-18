@@ -1,7 +1,7 @@
-package com.beabloo.bigdata.cockroach.spec;
+package com.beabloo.bigdata.yaelp.spec;
 
 
-public enum Platform {
+public enum Environment {
 
     UNKNOWN,
     DS,
@@ -12,8 +12,8 @@ public enum Platform {
     RECOGNITION,
     INTERACTIVE;
 
-    public static Platform getPlatform(String name) {
-        for ( Platform p : values() ) {
+    public static Environment getEnvironment(String name) {
+        for ( Environment p : values() ) {
             if ( p.name().equalsIgnoreCase(name) ){
                 return p;
             }

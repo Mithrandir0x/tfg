@@ -8,8 +8,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.function.Function;
 
-public abstract class AbstractHttpLogListenerServlet extends HttpServlet implements LogListener {
+public abstract class AbstractHttpLogListenerServlet extends HttpServlet implements LogListener<HttpServletRequest, HttpServletResponse> {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -19,8 +20,8 @@ public abstract class AbstractHttpLogListenerServlet extends HttpServlet impleme
             onIncomingLog(request);
 
             if ( validateIncomingLog(request) ) {
-                rawLog = getLogObject(request);
-                onStoreLogObject(rawLog);
+                rawLog = getRawLog(request);
+                onStoreRawLog(rawLog);
             }
         } catch ( Throwable t ) {
             t.printStackTrace();

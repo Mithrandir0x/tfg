@@ -1,7 +1,7 @@
-package com.beabloo.bigdata.cockroach.annotations;
+package com.beabloo.bigdata.yaelp.annotations;
 
-import com.beabloo.bigdata.cockroach.spec.Event;
-import com.beabloo.bigdata.cockroach.spec.Platform;
+import com.beabloo.bigdata.yaelp.spec.Environment;
+import com.beabloo.bigdata.yaelp.spec.Trigger;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Activity {
 
-    Platform platform() default Platform.UNKNOWN;
-    Event event() default Event.UNKNOWN;
+    Environment environment() default Environment.UNKNOWN;
+    Trigger trigger() default Trigger.UNKNOWN;
 
 }

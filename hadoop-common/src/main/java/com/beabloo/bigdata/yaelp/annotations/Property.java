@@ -1,4 +1,4 @@
-package com.beabloo.bigdata.cockroach.annotations;
+package com.beabloo.bigdata.yaelp.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Parameter {
+public @interface Property {
 
     boolean required() default true;
 

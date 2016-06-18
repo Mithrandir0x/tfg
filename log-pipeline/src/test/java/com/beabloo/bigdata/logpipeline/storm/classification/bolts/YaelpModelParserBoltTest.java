@@ -1,15 +1,12 @@
 package com.beabloo.bigdata.logpipeline.storm.classification.bolts;
 
-import com.beabloo.bigdata.cockroach.model.CockroachLog;
 import com.beabloo.bigdata.model.WifiPresenceLog;
 import com.google.common.hash.HashCode;
 import com.google.common.io.BaseEncoding;
 import com.google.common.math.BigIntegerMath;
-import com.google.common.primitives.Bytes;
 import com.lambdaworks.redis.RedisFuture;
 import com.lambdaworks.redis.api.async.RedisAsyncCommands;
 import com.lambdaworks.redis.api.async.RedisHLLAsyncCommands;
-import javafx.util.converter.BigIntegerStringConverter;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.junit.Ignore;
@@ -32,7 +29,7 @@ import java.util.stream.Stream;
 
 import static org.mockito.Mockito.mock;
 
-public class CockroachModelParserBoltTest {
+public class YaelpModelParserBoltTest {
 
     @Ignore
     public void verifyHyperLogLogTest() throws Exception {
@@ -42,7 +39,7 @@ public class CockroachModelParserBoltTest {
 
         WifiPresenceLog log = new WifiPresenceLog();
 
-        CockroachModelParserBolt bolt = new CockroachModelParserBolt();
+        YaelpModelParserBolt bolt = new YaelpModelParserBolt();
 
         Map conf = mock(Map.class);
         TopologyContext context = mock(TopologyContext.class);
@@ -50,7 +47,7 @@ public class CockroachModelParserBoltTest {
 
         bolt.prepare(conf, context, collector);
 
-        String[][] dataset = CockroachLogSamples.getDataSet("../datasets/unique_devices_1M.csv", 1000000);
+        String[][] dataset = YaelpLogSamples.getDataSet("../datasets/unique_devices_1M.csv", 1000000);
 
         Stream<String[]> stream = Stream.of(dataset);
 
@@ -85,7 +82,7 @@ public class CockroachModelParserBoltTest {
         log.setSensor(Long.parseLong(data[3]));
         log.setDevice(data[4]);
 
-        CockroachModelParserBolt bolt = new CockroachModelParserBolt();
+        YaelpModelParserBolt bolt = new YaelpModelParserBolt();
 
         Map conf = mock(Map.class);
         TopologyContext context = mock(TopologyContext.class);
@@ -138,7 +135,7 @@ public class CockroachModelParserBoltTest {
     public void hashDistributionTest() throws Exception {
         WifiPresenceLog log = new WifiPresenceLog();
 
-        CockroachModelParserBolt bolt = new CockroachModelParserBolt();
+        YaelpModelParserBolt bolt = new YaelpModelParserBolt();
 
         Map<String, List<Long>> hashMap = new HashMap<>();
 
@@ -148,7 +145,7 @@ public class CockroachModelParserBoltTest {
 
         bolt.prepare(conf, context, collector);
 
-        // String[][] dataset = CockroachLogSamples.getDataSet("../datasets/unique_devices_1M.csv", 1000000);
+        // String[][] dataset = YaelpLogSamples.getDataSet("../datasets/unique_devices_1M.csv", 1000000);
         String[][] dataset = new String[][] {};
 
         for ( int i = 0, j = 0 ; i < dataset.length ; i++ ) {

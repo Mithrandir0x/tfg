@@ -1,7 +1,6 @@
 package com.beabloo.bigdata.logpipeline.storm.classification.bolts;
 
-import com.beabloo.bigdata.cockroach.model.CockroachLog;
-import com.beabloo.bigdata.cockroach.spec.ActivityDefinition;
+import com.beabloo.bigdata.yaelp.spec.ActivityDefinition;
 import org.apache.storm.hdfs.bolt.HdfsBolt;
 import org.apache.storm.hdfs.bolt.format.RecordFormat;
 import org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy;

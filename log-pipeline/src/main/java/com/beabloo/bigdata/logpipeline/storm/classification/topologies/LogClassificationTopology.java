@@ -1,20 +1,12 @@
 package com.beabloo.bigdata.logpipeline.storm.classification.topologies;
 
-import com.beabloo.bigdata.logpipeline.storm.classification.bolts.CockroachModelParserBolt;
-import com.beabloo.bigdata.logpipeline.storm.classification.bolts.CockroachUnpackerBolt;
+import com.beabloo.bigdata.logpipeline.storm.classification.bolts.YaelpModelParserBolt;
+import com.beabloo.bigdata.logpipeline.storm.classification.bolts.YaelpUnpackerBolt;
+import com.beabloo.bigdata.logpipeline.storm.classification.bolts.LogHdfsBolt;
 import com.beabloo.bigdata.logpipeline.storm.classification.bolts.RawLogProtocolSplitterBolt;
-import com.beabloo.bigdata.logpipeline.storm.classification.bolts.hdfs.CockroachLogRecordFormat;
-import com.beabloo.bigdata.logpipeline.storm.classification.bolts.hdfs.TimeHdfsPartitioner;
 import com.beabloo.bigdata.logpipeline.storm.classification.spouts.RawLogKafkaSpout;
 import org.apache.storm.Config;
 import org.apache.storm.StormSubmitter;
-import org.apache.storm.hdfs.bolt.HdfsBolt;
-import org.apache.storm.hdfs.bolt.format.DefaultFileNameFormat;
-import org.apache.storm.hdfs.bolt.format.FileNameFormat;
-import org.apache.storm.hdfs.bolt.rotation.FileRotationPolicy;
-import org.apache.storm.hdfs.bolt.rotation.FileSizeRotationPolicy;
-import org.apache.storm.hdfs.bolt.sync.CountSyncPolicy;
-import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
 import org.apache.storm.topology.TopologyBuilder;
 
 public class LogClassificationTopology {
@@ -37,33 +29,17 @@ public class LogClassificationTopology {
             builder.setBolt(RawLogProtocolSplitterBolt.ID, rawLogProtocolSplitterBolt)
                     .shuffleGrouping(RawLogKafkaSpout.ID);
 
-            CockroachUnpackerBolt cockroachUnpackerBolt = new CockroachUnpackerBolt();
-            builder.setBolt(CockroachUnpackerBolt.ID, cockroachUnpackerBolt)
+            YaelpUnpackerBolt yaelpUnpackerBolt = new YaelpUnpackerBolt();
+            builder.setBolt(YaelpUnpackerBolt.ID, yaelpUnpackerBolt)
                     .shuffleGrouping(RawLogProtocolSplitterBolt.ID, RawLogProtocolSplitterBolt.HTTP_COCKROACH_STREAM);
 
-            CockroachModelParserBolt cockroachModelParserBolt = new CockroachModelParserBolt();
-            builder.setBolt(CockroachModelParserBolt.ID, cockroachModelParserBolt)
-                    .shuffleGrouping(CockroachUnpackerBolt.ID);
+            YaelpModelParserBolt yaelpModelParserBolt = new YaelpModelParserBolt();
+            builder.setBolt(YaelpModelParserBolt.ID, yaelpModelParserBolt)
+                    .shuffleGrouping(YaelpUnpackerBolt.ID);
 
-            // sync the filesystem after every 1k tuples
-            SyncPolicy syncPolicy = new CountSyncPolicy(10);
-
-            // rotate files when they reach 5MB
-            FileRotationPolicy rotationPolicy = new FileSizeRotationPolicy(2.0f, FileSizeRotationPolicy.Units.MB);
-            //FileRotationPolicy rotationPolicy = new TimedRotationPolicy(5, TimedRotationPolicy.TimeUnit.SECONDS);
-
-            FileNameFormat fileNameFormat = new DefaultFileNameFormat().withPath("/engine2_big_data/cockroach/");
-
-            HdfsBolt hdfsBolt = new HdfsBolt()
-                    // @TODO The NameNode server should be parameterized
-                    .withFsUrl("hdfs://nn.local.vm:8020")
-                    .withFileNameFormat(fileNameFormat)
-                    .withRecordFormat(new CockroachLogRecordFormat())
-                    .withPartitioner(new TimeHdfsPartitioner())
-                    .withRotationPolicy(rotationPolicy)
-                    .withSyncPolicy(syncPolicy);
+            LogHdfsBolt hdfsBolt = new LogHdfsBolt("/engine2_big_data/yaelp/");
             builder.setBolt("COCKROACH_HDFS_BOLT_ID", hdfsBolt)
-                    .shuffleGrouping(CockroachModelParserBolt.ID);
+                    .shuffleGrouping(YaelpModelParserBolt.ID);
 
             config.setNumWorkers(4);
 

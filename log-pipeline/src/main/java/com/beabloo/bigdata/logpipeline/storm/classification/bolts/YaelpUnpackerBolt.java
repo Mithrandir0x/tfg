@@ -1,8 +1,8 @@
 package com.beabloo.bigdata.logpipeline.storm.classification.bolts;
 
-import com.beabloo.bigdata.cockroach.model.CockroachEventHttpRequestContainer;
-import com.beabloo.bigdata.cockroach.model.ParamsContainer;
-import com.beabloo.bigdata.cockroach.serdes.ParamsContainerFastDeserializer;
+import com.beabloo.bigdata.yaelp.model.YaelpEventContainer;
+import com.beabloo.bigdata.yaelp.model.YaelpRawEvent;
+import com.beabloo.bigdata.yaelp.serdes.YaelpRawEventFastDeserializer;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Gauge;
@@ -25,11 +25,11 @@ import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class CockroachUnpackerBolt extends LogPipelineBaseBolt {
+public class YaelpUnpackerBolt extends LogPipelineBaseBolt {
 
-    private static final Logger log = LoggerFactory.getLogger(CockroachUnpackerBolt.class);
+    private static final Logger log = LoggerFactory.getLogger(YaelpUnpackerBolt.class);
 
-    public static final String ID = "COCKROACH_UNPACKER_BOLT_ID";
+    public static final String ID = "YAELP_UNPACKER_BOLT_ID";
 
     private static final Pattern platformPattern = Pattern.compile("^.*/activityTracking/([a-zA-Z_0-9]+).*$");
     private static final Pattern jsonParamPattern = Pattern.compile("^\\??json=(.*)$");
@@ -51,31 +51,31 @@ public class CockroachUnpackerBolt extends LogPipelineBaseBolt {
 
         successCountMetric = Counter.build()
                 .name("storm_logpipeline_unpacker_success_total")
-                .help("CockroachUnpackerBolt metric count")
-                .labelNames("platform")
+                .help("YaelpUnpackerBolt metric count")
+                .labelNames("environment")
                 .register(collectorRegistry);
 
         errorCountMetric = Counter.build()
                 .name("storm_logpipeline_unpacker_error_total")
-                .help("CockroachUnpackerBolt metric count")
+                .help("YaelpUnpackerBolt metric count")
                 .labelNames("type")
                 .register(collectorRegistry);
 
         executionDurationHistogram = Histogram.build()
                 .name("storm_logpipeline_unpacker_execution_duration")
-                .help("CockroachUnpackerBolt metric count")
+                .help("YaelpUnpackerBolt metric count")
                 .register(collectorRegistry);
 
         currentUnpackedLogsMetric = Gauge.build()
                 .name("storm_logpipeline_unpacker_current_logs_count")
-                .help("CockroachUnpackerBolt metric count")
-                .labelNames("platform")
+                .help("YaelpUnpackerBolt metric count")
+                .labelNames("environment")
                 .register(collectorRegistry);
 
         // @TODO Wrap this into a class
         objectMapper = new ObjectMapper();
         SimpleModule simpleModule = new SimpleModule("UNK", Version.unknownVersion());
-        simpleModule.addDeserializer(ParamsContainer.class, new ParamsContainerFastDeserializer());
+        simpleModule.addDeserializer(YaelpRawEvent.class, new YaelpRawEventFastDeserializer());
         objectMapper.registerModule(simpleModule);
     }
 
@@ -89,24 +89,24 @@ public class CockroachUnpackerBolt extends LogPipelineBaseBolt {
             if ( json != null && platform != null ) {
                 log.debug(String.format("Received new raw log. json [%s]", json));
 
-                CockroachEventHttpRequestContainer container = objectMapper.readValue(URLDecoder.decode(json, "UTF-8"), CockroachEventHttpRequestContainer.class);
+                YaelpEventContainer container = objectMapper.readValue(URLDecoder.decode(json, "UTF-8"), YaelpEventContainer.class);
                 int containerSize = container.getEvents().size();
 
-                log.info(String.format("Unpacked [%s] cockroach events", containerSize));
+                log.info(String.format("Unpacked [%s] yaelp events", containerSize));
                 currentUnpackedLogsMetric.labels(platform).set(containerSize);
 
-                for ( ParamsContainer paramsContainer : container.getEvents() ) {
-                    log.debug(String.format("Emiting new event log [%s]", paramsContainer));
+                for ( YaelpRawEvent yaelpRawEvent : container.getEvents() ) {
+                    log.debug(String.format("Emiting new trigger log [%s]", yaelpRawEvent));
                     outputCollector.emit(new Values(input.getValueByField("timestamp"),
                             platform,
-                            paramsContainer.getParamsValues(),
-                            paramsContainer.getExtraParams()));
+                            yaelpRawEvent.getData(),
+                            yaelpRawEvent.getMeta()));
 
                     successCountMetric.labels(platform).inc();
                 }
             } else {
                 // Notify problem to another stream
-                log.error(String.format("Badly formatted data. platform [%s] json [%s]", platform, json));
+                log.error(String.format("Badly formatted data. environment [%s] json [%s]", platform, json));
                 errorCountMetric.labels("badformat").inc();
             }
         } catch ( Exception ex ) {
@@ -123,7 +123,7 @@ public class CockroachUnpackerBolt extends LogPipelineBaseBolt {
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
         super.declareOutputFields(declarer);
 
-        declarer.declare(new Fields("timestamp", "platform", "paramsValues", "extraParams"));
+        declarer.declare(new Fields("timestamp", "environment", "paramsValues", "extraParams"));
     }
 
     protected String getJson(String rawData) {

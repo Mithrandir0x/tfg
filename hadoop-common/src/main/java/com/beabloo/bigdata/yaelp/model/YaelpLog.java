@@ -1,7 +1,7 @@
-package com.beabloo.bigdata.cockroach.model;
+package com.beabloo.bigdata.yaelp.model;
 
-import com.beabloo.bigdata.cockroach.annotations.Parameter;
-import com.beabloo.bigdata.cockroach.spec.ActivityDefinition;
+import com.beabloo.bigdata.yaelp.annotations.Property;
+import com.beabloo.bigdata.yaelp.spec.ActivityDefinition;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.validation.constraints.NotNull;
@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public abstract class CockroachLog implements Serializable {
+public abstract class YaelpLog implements Serializable {
 
     public static final String fieldsTerminatedBy = "\u0001";
     public static final String collectionItemsTerminatedBy = "\u0002";
@@ -19,19 +19,19 @@ public abstract class CockroachLog implements Serializable {
 
     private ActivityDefinition activityDefinition;
 
-    @Parameter
+    @Property
     @NotNull(message = "[organization] cannot be null")
     private Long organization;
 
-    @Parameter
+    @Property
     @NotNull(message = "[startEvent] cannot be null")
     private Long startEvent;
 
-    @Parameter
+    @Property
     @NotNull(message = "[tags] cannot be null")
     private String tags;
 
-    @Parameter(required = false)
+    @Property(required = false)
     private Map<String, String> extras = new HashMap<>();
 
     public ActivityDefinition getActivityDefinition() {

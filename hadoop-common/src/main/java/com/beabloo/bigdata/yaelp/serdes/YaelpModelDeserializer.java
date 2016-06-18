@@ -1,9 +1,9 @@
-package com.beabloo.bigdata.cockroach.serdes;
+package com.beabloo.bigdata.yaelp.serdes;
 
-import com.beabloo.bigdata.cockroach.model.CockroachLog;
-import com.beabloo.bigdata.cockroach.spec.ActivityDefinition;
-import com.beabloo.bigdata.cockroach.spec.Event;
-import com.beabloo.bigdata.cockroach.spec.Platform;
+import com.beabloo.bigdata.yaelp.model.YaelpLog;
+import com.beabloo.bigdata.yaelp.spec.ActivityDefinition;
+import com.beabloo.bigdata.yaelp.spec.Environment;
+import com.beabloo.bigdata.yaelp.spec.Trigger;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.hibernate.validator.HibernateValidator;
@@ -20,11 +20,11 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class CockroachModelDeserializer {
+public class YaelpModelDeserializer {
 
-    private static final Logger log = LoggerFactory.getLogger(CockroachModelDeserializer.class);
+    private static final Logger log = LoggerFactory.getLogger(YaelpModelDeserializer.class);
 
-    private static final Pattern eventPattern = Pattern.compile("\"event\"\\: *([0-9]*)");
+    private static final Pattern triggerPattern = Pattern.compile("\"trigger\"\\: *([0-9]*)");
     private ObjectMapper objectMapper;
 
     private static final ValidatorFactory factory = Validation.byProvider(HibernateValidator.class).configure().buildValidatorFactory();
@@ -32,7 +32,7 @@ public class CockroachModelDeserializer {
 
     private Map<ActivityDefinition, ActivityDeserializer> deserializers = new HashMap<>();
 
-    public CockroachModelDeserializer() {
+    public YaelpModelDeserializer() {
         objectMapper = new ObjectMapper();
 
         for ( ActivityDefinition activityDefinition : ActivityDefinition.values() ) {
@@ -40,29 +40,29 @@ public class CockroachModelDeserializer {
         }
     }
 
-    public CockroachLog deserialize(String platformName, String paramsValues, String extraParams) throws Exception {
-        CockroachLog values = null;
+    public YaelpLog deserialize(String platformName, String paramsValues, String extraParams) throws Exception {
+        YaelpLog values = null;
 
-        Platform platform = Platform.getPlatform(platformName);
-        if ( platform != null ) {
+        Environment environment = Environment.getEnvironment(platformName);
+        if ( environment != null ) {
             String eventId = getEventId(paramsValues);
-            Event event = Event.getEvent(eventId);
-            if ( event != null ) {
-                log.info(String.format("Deserializing platform [%s] event [%s]", platform.name(), event.name()));
-                ActivityDefinition activityDefinition = ActivityDefinition.getActivityDefinition(platform, event);
+            Trigger trigger = Trigger.getTrigger(eventId);
+            if ( trigger != null ) {
+                log.info(String.format("Deserializing environment [%s] trigger [%s]", environment.name(), trigger.name()));
+                ActivityDefinition activityDefinition = ActivityDefinition.getActivityDefinition(environment, trigger);
                 if ( activityDefinition != null ) {
                     values = deserializers.get(activityDefinition).deserialize(paramsValues, extraParams);
                 } else {
                     // @TODO Throw specific exception
-                    log.warn(String.format("Unknown activity definition. Platform [%s] Event [%s]", platformName, eventId));
+                    log.warn(String.format("Unknown activity definition. Environment [%s] Trigger [%s]", platformName, eventId));
                 }
             } else {
                 // @TODO Throw specific exception
-                log.warn(String.format("Unknown event id [%s]", eventId));
+                log.warn(String.format("Unknown trigger id [%s]", eventId));
             }
         } else {
             // @TODO Throw specific exception
-            log.warn(String.format("Unknown platform [%s]", platformName));
+            log.warn(String.format("Unknown environment [%s]", platformName));
         }
 
         return values;
@@ -71,9 +71,9 @@ public class CockroachModelDeserializer {
     protected String getEventId(String paramsValues) {
         String eventId = null;
 
-        log.debug(String.format("paramsValues [%s]", paramsValues));
+        log.debug(String.format("data [%s]", paramsValues));
 
-        Matcher matcher = eventPattern.matcher(paramsValues);
+        Matcher matcher = triggerPattern.matcher(paramsValues);
         if ( matcher.find() ) {
             eventId = matcher.group(1);
         }
@@ -89,21 +89,21 @@ public class CockroachModelDeserializer {
             this.activityDefinition = activityDefinition;
         }
 
-        public CockroachLog deserialize(String paramsValues, String extraParams) throws Exception {
-            CockroachLog cockroachLog = (CockroachLog) objectMapper.readValue(paramsValues, activityDefinition.getModel());
-            cockroachLog.setActivityDefinition(activityDefinition);
+        public YaelpLog deserialize(String paramsValues, String extraParams) throws Exception {
+            YaelpLog yaelpLog = (YaelpLog) objectMapper.readValue(paramsValues, activityDefinition.getModel());
+            yaelpLog.setActivityDefinition(activityDefinition);
 
             HashMap<String, Object> extras = objectMapper.readValue(extraParams,  new TypeReference<HashMap<String, Object>>() {});
-            Map<String, String> logExtras = cockroachLog.getExtras();
+            Map<String, String> logExtras = yaelpLog.getExtras();
             for ( Map.Entry<String, Object> entry : extras.entrySet() ) {
                 logExtras.put(entry.getKey(), entry.getValue().toString());
             }
 
-            Set<ConstraintViolation<CockroachLog>> constraintViolations = validator.validate(cockroachLog);
-            log.info(String.format("Deserialized cockroachLog [%s] with [%s] constraint violations", cockroachLog, constraintViolations.size()));
+            Set<ConstraintViolation<YaelpLog>> constraintViolations = validator.validate(yaelpLog);
+            log.info(String.format("Deserialized yaelpLog [%s] with [%s] constraint violations", yaelpLog, constraintViolations.size()));
 
             if ( constraintViolations.size() > 0 ) {
-                for ( ConstraintViolation<CockroachLog> constraintViolation : constraintViolations ) {
+                for ( ConstraintViolation<YaelpLog> constraintViolation : constraintViolations ) {
                     log.error(constraintViolation.getMessage());
                 }
 
@@ -111,7 +111,7 @@ public class CockroachModelDeserializer {
                 return null;
             }
 
-            return cockroachLog;
+            return yaelpLog;
         }
 
     }

@@ -9,6 +9,7 @@ import com.lambdaworks.redis.api.async.RedisAsyncCommands;
 import com.lambdaworks.redis.api.async.RedisHLLAsyncCommands;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Counter;
+import io.prometheus.client.Gauge;
 import io.prometheus.client.Histogram;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -30,7 +31,7 @@ public class RawLogProtocolSplitterBolt extends LogPipelineBaseBolt {
 
     private static Pattern cockroachUri = Pattern.compile("^.*/activityTracking/[a-zA-Z_0-9]*.*$");
 
-    public static String HTTP_COCKROACH_STREAM = "http.cockroach";
+    public static String HTTP_COCKROACH_STREAM = "http.yaelp";
     public static String HTTP_EXANDS_STREAM = "http.exands";
 
     private OutputCollector outputCollector;
@@ -40,6 +41,7 @@ public class RawLogProtocolSplitterBolt extends LogPipelineBaseBolt {
     protected transient HashFunction hashFunction;
     protected transient Funnel<Tuple> funnel;
 
+    private transient Gauge gaugeTest;
     private transient Counter successCountMetric;
     private transient Counter errorCountMetric;
     private transient Counter duplicatedCountMetric;
@@ -94,11 +96,11 @@ public class RawLogProtocolSplitterBolt extends LogPipelineBaseBolt {
 
                 if ( currentlyAdded ) {
                     String type = input.getStringByField("type");
-                    if (type.startsWith("http") && cockroachUri.matcher(type).matches()) {
-                        log.info(String.format("Found new raw log for cockroach..."));
+                    if ( type.startsWith("http") && cockroachUri.matcher(type).matches() ) {
+                        log.info(String.format("Found new raw log for yaelp..."));
                         outputCollector.emit(HTTP_COCKROACH_STREAM, input.getValues());
 
-                        successCountMetric.labels("cockroach").inc();
+                        successCountMetric.labels("yaelp").inc();
                     } else {
                         log.error(String.format("Unknown protocol [%s]", type));
 

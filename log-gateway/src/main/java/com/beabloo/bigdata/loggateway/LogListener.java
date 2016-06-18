@@ -7,20 +7,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-public interface LogListener {
+public interface LogListener<INPUT, OUTPUT> {
 
-    void onIncomingLog(HttpServletRequest request) throws ServletException, IOException;
+    void onIncomingLog(INPUT input) throws ServletException, IOException;
 
-    void onValidLog(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException;
+    void onValidLog(INPUT input, OUTPUT output) throws ServletException, IOException;
 
-    void onInvalidLog(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException;
+    void onInvalidLog(INPUT input, OUTPUT output) throws ServletException, IOException;
 
-    void onException(HttpServletRequest request, HttpServletResponse response, Throwable ex) throws ServletException, IOException;
+    void onException(INPUT input, OUTPUT output, Throwable ex) throws ServletException, IOException;
 
-    boolean validateIncomingLog(HttpServletRequest request);
+    boolean validateIncomingLog(INPUT input);
 
-    RawLog getLogObject(HttpServletRequest request);
+    RawLog getRawLog(INPUT input);
 
-    void onStoreLogObject(RawLog rawLog);
+    void onStoreRawLog(RawLog rawLog) throws Exception;
 
 }
