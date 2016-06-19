@@ -122,6 +122,11 @@ class prometheus {
         path => $PATH,
     }
     ->
+    exec { "create-prometheus-pushgateway-app-folder":
+        command => "mkdir -p $PUSHGATEWAY_LOCAL_DIR",
+        path => $PATH,
+    }
+    ->
     file { "$PROMETHEUS_LOCAL_DIR/prometheus.yml":
         ensure => "present",
         content => template("prometheus/prometheus.yml.erb"),
