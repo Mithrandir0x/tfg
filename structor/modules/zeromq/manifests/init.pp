@@ -49,7 +49,7 @@ class zeromq {
 	}
 	->
 	exec { "download-jzmq":
-		command => "cp /vagrant/jzmq-master.zip .",
+		command => "cp /vagrant/files/storm/jzmq-master.zip .",
 		path => $PATH,
 		cwd => "/tmp",
 	}
