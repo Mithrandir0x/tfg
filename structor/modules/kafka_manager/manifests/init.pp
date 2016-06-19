@@ -3,7 +3,7 @@ class kafka_manager {
     $PATH = "/bin:/usr/bin:/usr/sbin"
 
     exec { "install-kafka-manager":
-        command => "yum -y install /vagrant/files/beabloo/nn/rpm/kafka-manager-1.3.0.7-1.noarch.rpm",
+        command => "yum -y install /vagrant/files/nn/rpm/kafka-manager-1.3.0.7-1.noarch.rpm",
         path => $PATH
     }
     ->
