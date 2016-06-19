@@ -106,7 +106,7 @@ class prometheus {
     }
     ->
     exec { "move-prometheus-pushgateway-folder":
-        command => "mv /tmp/prometheus-$PUSHGATEWAY_VERSION $PUSHGATEWAY_DIR",
+        command => "mv /tmp/pushgateway-$PUSHGATEWAY_VERSION $PUSHGATEWAY_DIR",
         path => $PATH,
     }
     ->
