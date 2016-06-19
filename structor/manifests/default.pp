@@ -138,6 +138,10 @@ if hasrole($roles, 'kafka-manager') {
   include kafka_manager
 }
 
+if hasrole($roles, 'redis') {
+  include redis
+}
+
 if hasrole($roles, 'storm-nimbus') {
   include storm_nimbus
   include storm_ui

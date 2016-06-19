@@ -9,10 +9,17 @@ class prometheus {
     $PROMETHEUS_DEFAULT_DIR = "$PROMETHEUS_DIR"
     $PROMETHEUS_LOCAL_DIR = "/etc/prometheus"
 
+    $PUSHGATEWAY_DIR = "/opt/prometheus/pushgateway"
+    $PUSHGATEWAY_DEFAULT_DIR = "$PUSHGATEWAY_DIR"
+    $PUSHGATEWAY_LOCAL_DIR = "$$PROMETHEUS_LOCAL_DIR/pushgateway"
+
     $GROUP_ID = '63001'
 
     $VERSION_SANS_PLATFORM = '0.18.0'
     $VERSION = '0.18.0.linux-amd64'
+
+    $PUSHGATEWAY_VERSION_SANS_PLATFORM = '0.3.0'
+    $PUSHGATEWAY_VERSION = '0.3.0.linux-amd64'
 
     exec { "create-prometheus-group-prometheus":
         command => "groupadd -g $GROUP_ID prometheus",
@@ -31,6 +38,16 @@ class prometheus {
     ->
     exec { "create-log-folder-prometheus":
         command => "mkdir -p /var/log/prometheus",
+        path => $PATH,
+    }
+    ->
+    exec { "create-pid-folder-pushgateway":
+        command => "mkdir -p /var/run/pushgateway/",
+        path => $PATH,
+    }
+    ->
+    exec { "create-log-folder-pushgateway":
+        command => "mkdir -p /var/log/pushgateway",
         path => $PATH,
     }
     ->
@@ -67,14 +84,31 @@ class prometheus {
         cwd => "/tmp",
     }
     ->
+    exec { "download-prometheus-pushgateway":
+        command => "wget https://github.com/prometheus/pushgateway/releases/download/$PUSHGATEWAY_VERSION_SANS_PLATFORM/pushgateway-$PUSHGATEWAY_VERSION.tar.gz",
+        path => $PATH,
+        cwd => "/tmp",
+    }
+    ->
     exec { "untar-prometheus":
         command => "tar -zxvf /tmp/prometheus-$VERSION.tar.gz",
         path => $PATH,
         cwd => "/tmp",
     }
     ->
+    exec { "untar-prometheus-pushgateway":
+        command => "tar -zxvf /tmp/pushgateway-$PUSHGATEWAY_VERSION.tar.gz",
+        path => $PATH,
+        cwd => "/tmp",
+    }
+    ->
     exec { "move-prometheus-folder":
         command => "mv /tmp/prometheus-$VERSION $PROMETHEUS_DIR",
+        path => $PATH,
+    }
+    ->
+    exec { "move-prometheus-pushgateway-folder":
+        command => "mv /tmp/prometheus-$PUSHGATEWAY_VERSION $PUSHGATEWAY_DIR",
         path => $PATH,
     }
     ->
@@ -109,7 +143,19 @@ class prometheus {
         mode => 'a+rx',
     }
     ->
+    file { "/etc/init.d/pushgateway":
+        ensure => "file",
+        content => template('prometheus/pushgateway.erb'),
+        mode => 'a+rx',
+    }
+    ->
     service { 'prometheus':
+        ensure => running,
+        enable => true,
+        status => "/usr/sbin/service  ${service} status",
+    }
+    ->
+    service { 'pushgateway':
         ensure => running,
         enable => true,
         status => "/usr/sbin/service  ${service} status",

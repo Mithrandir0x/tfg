@@ -118,7 +118,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           "--verbose", "--debug",
           "--fileserverconfig=/vagrant/fileserver.conf"]
         puppet.facter = {
-          "local_repo" => profile[:local_repo_path],
           "hdp" => hdp,
           "hostname" => node[:hostname],
           "ip" => node[:ip],
@@ -136,7 +135,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           "clients" => profile[:clients],
           "server_mem" => node[:server_mem],
           "client_mem" => node[:client_mem],
-          "svn_user" => profile[:svn_user],
           "hdp_version_major" => hdp_version_major,
           "hdp_version_minor" => hdp_version_minor,
           "hdp_version_patch" => hdp_version_patch,
