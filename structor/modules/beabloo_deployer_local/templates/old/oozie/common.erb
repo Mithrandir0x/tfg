@@ -1,0 +1,35 @@
+<%#
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-%>
+<% 
+   @namenode = eval(@nodes).select {|node| node[:roles].include? 'nn'}[0][:hostname] + "." + @domain;
+   @jobtracker = eval(@nodes).select {|node| node[:roles].include? 'yarn'}[0][:hostname] + "." + @domain;
+ -%>
+jobTracker=<%= @jobtracker %>:8050
+nameNode=hdfs://<%= @namenode %>:8020
+emailToReport=DevBigData@beabloo.com
+import_db_host=jdbc:mysql://<%= @gateway %>/
+import_db_username=root
+import_db_password=root
+import_db_business=business
+import_db_engine2=engine2
+import_db_big_data=engine2_big_data
+export_db_host=jdbc:mysql://<%= @gateway %>/
+export_db_username=root
+export_db_password=root
+export_db_business=business
+export_db_engine2=engine2
+export_db_big_data=engine2_big_data

@@ -1,0 +1,31 @@
+<% 
+   @zookeepers = eval(@nodes).select {|node| node[:roles].include? 'zk'};
+   @nimbus = eval(@nodes).select {|node| node[:roles].include? 'storm-nimbus'}[0][:hostname] + "." + @domain;
+
+   if eval(@profile)[:storm] and eval(@profile)[:storm][:supervisor_slots_ports]
+   	 @supervisor_ports = eval(@profile)[:storm][:supervisor_slots_ports]
+   else
+   	 @supervisor_ports = [ 6700, 6701, 6702, 6703 ]
+   end
+
+   @ui_port = eval(@profile)[:storm][:ui_port]
+
+ -%>
+storm.zookeeper.servers:
+  <% for @host in @zookeepers %>- "<%= @host[:hostname] + "." + @domain %>"
+  <% end %>
+
+supervisor.slots.ports:
+  <% for @port in @supervisor_ports %>- <%= @port %>
+  <% end %>
+
+nimbus.host: "<%= @nimbus %>"
+nimbus.childopts: "-Xmx1024m -Djava.net.preferIPv4Stack=true"
+
+ui.port: <%= @ui_port %>
+ui.childopts: "-Xmx768m -Djava.net.preferIPv4Stack=true"
+
+supervisor.childopts: "-Djava.net.preferIPv4Stack=true"
+worker.childopts: "-Xmx768m -Djava.net.preferIPv4Stack=true"
+
+storm.local.dir: "<%= @STORM_LOCAL_DIR %>"

@@ -1,0 +1,215 @@
+#!/bin/bash
+set -e
+
+cd $(dirname $0)
+pwd=$(pwd)
+
+source cluster.conf
+source /etc/hadoop/conf/hadoop-env.sh
+
+SVN_USER=<%= @svn_user %>
+
+# --------------------------------------------------------------------------------------------
+#                                       Functions
+# --------------------------------------------------------------------------------------------
+
+function hadoop()
+{
+    sudo -u hdfs hdfs $@
+}
+
+function askToContinue()
+{
+    echo -e "$1 (y/n)"
+    read ANSWER
+    case ${ANSWER} in 
+        y|Y|yes|YES)
+            return 0
+        ;;
+        n|N|no|NO)
+            return 1
+        ;;
+        *)
+            echo "Aborted for security reasons"
+            exit 1
+        ;;
+    esac
+}
+
+# --------------------------------------------------------------------------------------------
+#                                       Main
+# --------------------------------------------------------------------------------------------
+
+echo -e "\nIntroduce revision number or left blank for latest revision:"
+read REVISION
+case ${REVISION} in
+        [0-9]*)
+                echo "Will use Revision ${REVISION} as Latest Revision. Is it ok ? (y/n)"
+                read ANSWER
+                case ${ANSWER} in
+                        y|Y|yes|YES)
+                                export REVISION=${REVISION}
+                                ;;
+                        n|N|no|NO)
+                                exit 0
+                ;;
+                        *)
+                                exit 0
+                esac
+                ;;
+        *)
+        echo "Normal execution: Latest Revision"
+                export REVISION=HEAD
+esac
+
+echo -e "Choose source repository:"
+REPOSITORIES=""
+for REP in trunk tags branches ; do
+    if [ "${REP}" = "trunk" ] ; then
+        LIST=trunk
+    else
+        BASEURL=svn+ssh://${SVN_USER}@code.beabloo.com/opt/development/bb-repository/bigData/hadoop_v1
+        LIST=$(svn -r ${REVISION} list ${BASEURL}/${REP} | sed "s/^/${REP}\//" | sed 's/\/$//')
+    fi
+    if [ -n "${LIST}" ] ; then
+        REPOSITORIES=$(echo -e "${REPOSITORIES}\n${LIST}" | grep -v "^$")
+    fi
+done
+echo "${REPOSITORIES}" | nl
+read CHOICE
+REPO=$(echo "${REPOSITORIES}" | sed -n "${CHOICE}p")
+if [ -z "${REPO}" ] ; then
+        echo -e "Error during selection of repository"
+        exit 1
+fi
+echo -e "Retrieve files from SVN:"
+rm -rf hadoop_v1
+svn -r ${REVISION} --force export ${BASEURL}/${REPO} hadoop_v1
+echo ""
+
+for PROJECT in oozie mapReduce hiveFunctions oozieELFunctions ; do
+    if askToContinue "Deploy ${PROJECT}?" ; then
+        eval "PROJECT_${PROJECT}=true"
+    else
+        eval "PROJECT_${PROJECT}=false"
+        continue
+    fi
+done
+
+rm -rf hadoop_v1/mapReduce/lib/hadoop-core-1.2.1.jar
+rm -rf hadoop_v1/hiveFunctions/lib/hadoop-common-2.2.0.jar
+
+# Build everything
+HADOOP_CLASSPATH="$(find ${hadoop_basedir}/hadoop -name \*.jar | tr '\n' ':')"
+MR_CLASSPATH="${HADOOP_CLASSPATH}$(find ${hadoop_basedir}/hadoop-mapreduce -name \*.jar | tr '\n' ':')$(find ${pwd}/hadoop_v1/mapReduce/lib/hadoop2.2 -name \*.jar | tr '\n' ':')."
+HIVE_CLASSPATH="${HADOOP_CLASSPATH}$(find ${pwd}/hadoop_v1/hiveFunctions/lib -name \*.jar | tr '\n' ':')."
+set -x
+
+if ${PROJECT_mapReduce} ; then
+    (cd hadoop_v1/mapReduce/src && javac $(find . -name \*.java) -classpath $MR_CLASSPATH:${pwd}/hadoop_v1/triangulation/src)
+    (cd hadoop_v1/triangulation/src && javac $(find . -name \*.java) -classpath $MR_CLASSPATH)
+fi
+if ${PROJECT_hive} ; then
+    (cd hadoop_v1/hiveFunctions/src && javac $(find . -name \*.java) -classpath $HIVE_CLASSPATH)
+fi
+if ${PROJECT_ELFunctions} ; then
+    (cd hadoop_v1/oozieELFunctions/src && javac $(find . -name \*.java) -classpath $HADOOP_CLASSPATH)
+fi
+
+set +x
+
+# Force local setup into job.properties
+for i in $(find hadoop_v1/oozie -name job-${cluster}.properties) ; do
+    dst=$(dirname $i)/job.properties
+    cat common.properties \
+        <(eval cat $i \
+            $(for i in $(sed -e "s/=.*//" common.properties) ; do echo -n " | grep -v ^$i=" ; done) \
+        ) \
+    > $dst
+done
+
+# Remove unused job.properties templates
+find hadoop_v1/oozie -name job-hq.properties -or -name job-pre.properties -or -name job-pro.properties | xargs -L1024 rm -f
+
+# Detect and report changes in job-*.properties files
+rm -rf unmodified_job_properties_from_svn
+cp -a /opt/oozie unmodified_job_properties_from_svn
+find unmodified_job_properties_from_svn -type f -not -name job.properties | xargs -L512 rm -f
+if ! diff_output=$(LANG=C diff -ur unmodified_job_properties_from_svn hadoop_v1/oozie) ; then
+    echo "${diff_output}" | grep -v ^O | less
+fi
+echo -e "\nDifferences between SVN & Prod:"
+rsync -anvr -c hadoop_v1/oozie/ /opt/oozie | grep -v "\/$"
+
+echo -e "\nDo you want to apply changes (y/n)?:"
+read CHOICE
+case ${CHOICE} in
+    y|Y)
+        if ${PROJECT_oozieELFunctions} ; then
+            # Stop Oozie (needed for elfunctions update)
+            for f in /var/run/oozie/oozie.pid ; do
+                if test -e /var/run/oozie/oozie.pid ; then
+                    if xargs ps < /var/run/oozie/oozie.pid ; then
+                        # ${oozie_server}/bin/oozie-stop.sh
+                        /etc/init.d/oozie stop
+                    else
+                        rm -f /var/run/oozie/oozie.pid
+                    fi
+                fi
+            done
+        fi
+
+        rsync --del -avr -c hadoop_v1/oozie/ /opt/oozie | grep -v "\/$"
+
+        chown -R hdfs /opt/oozie
+
+        set -x
+
+        if ${PROJECT_oozieELFunctions} ; then
+            # Install elfunctions
+                for f in ${oozie_server}/libext/elfunctions.jar ; do
+                if test -e $f ; then
+                    mv $f $f.bak.$(date +'%Y-%m-%d_%H:%M')
+                fi
+            done
+            (cd hadoop_v1/oozieELFunctions/src && jar -cf ${oozie_server}/libext/elfunctions.jar $(find . -name \*.class))
+            ${oozie_server}/bin/oozie-setup.sh prepare-war
+        fi
+
+        # Update jar files in HDFS
+        if ${PROJECT_hiveFunctions} ; then
+            mkdir -p /opt/oozie/conf/hiveFunctions
+            hadoop dfs -mkdir -p /user/oozie/beabloo/conf/hiveFunctions
+            (cd hadoop_v1/hiveFunctions/src && jar -cf /opt/oozie/conf/hiveFunctions/HIVE.jar $(find . -name \*.class))
+            hadoop dfs -put -f /opt/oozie/conf/hiveFunctions/HIVE.jar /user/oozie/beabloo/conf/hiveFunctions/HIVE.jar
+        fi
+        if ${PROJECT_mapReduce} ; then
+            (cd hadoop_v1/mapReduce/src && jar -cf /opt/oozie/conf/mapReduce.jar $(find . -name \*.class))
+            (cd hadoop_v1/triangulation/src && jar -uf /opt/oozie/conf/mapReduce.jar $(find . -name \*.class))
+            chmod 644 /opt/oozie/conf/mapReduce.jar
+            hadoop dfs -put -f /opt/oozie/conf/mapReduce.jar /user/oozie/beabloo/conf/mapReduce.jar
+        fi
+
+        # Update hive-site.xml in HDFS
+        hadoop dfs -put -f /etc/hive/conf/hive-site.xml /user/oozie/beabloo/conf/hive-site.xml
+
+        # Update workflow.xml and HIVE query files
+        hadoop dfs -rm -r -f -skipTrash /user/oozie/beabloo/etls
+        hadoop dfs -put -f /opt/oozie /user/oozie/beabloo/etls
+
+        set +x
+
+        if ${PROJECT_oozieELFunctions} ; then
+            # Start Oozie (don't do this as root!!)
+            # sudo -u oozie -g hadoop ${oozie_server}/bin/oozie-start.sh
+            /etc/init.d/oozie restart
+        fi
+
+        ;;
+    n|n) 
+        exit 0
+        ;;
+    *)
+        exit 1
+        ;;
+esac

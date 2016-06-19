@@ -7,3 +7,7 @@ out
 report
 target
 *.pyc
+.vagrant
+current.profile
+generated/
+*~

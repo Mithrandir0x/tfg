@@ -1,0 +1,151 @@
+#  Licensed to the Apache Software Foundation (ASF) under one or more
+#   contributor license agreements.  See the NOTICE file distributed with
+#   this work for additional information regarding copyright ownership.
+#   The ASF licenses this file to You under the Apache License, Version 2.0
+#   (the "License"); you may not use this file except in compliance with
+#   the License.  You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
+require 'json'
+
+VAGRANTFILE_API_VERSION = "2"
+
+# Profile search path:
+$profile_path = ["current.profile"]
+
+###############################################################################
+# Loads a profile, which is a JSON file describing a specific configuation.
+#
+# The user should create a symlink from current.profile to the desired
+# profile.
+def loadProfile()
+  $profile_path.each { |file| 
+    if file and File.file?(file)
+      puts "Loading profile %s\n" % [File.realpath(file)]
+      return JSON.parse( IO.read( file ), opts = { symbolize_names: true } )
+    end
+  }
+end
+
+# Pull the HDP version out of the hdp.repo file
+def findVersion(profile)
+  if profile[:hdp]
+    fileObj = File.new('files/repos/hdp.repo.%s' % profile[:hdp], 'r')
+    puts "Profile HDP [%s]\n" % profile[:hdp]
+  else
+    fileObj = File.new('files/repos/hdp.repo', 'r')
+    puts "No HDP selected, using default\n"
+  end
+  match = /^#VERSION_NUMBER=(?<ver>[-0-9.]*)/.match(fileObj.gets)
+  fileObj.close()
+  version = match['ver']
+  versions = version.split(".")
+  major = versions[0].to_i
+  minor = versions[1].to_i
+  patch = versions[2].to_i
+  puts "HDP Build [%s]\n" % version
+  return [version, major, minor, patch]
+end
+
+###############################################################################
+# Define cluster
+
+profile = loadProfile()
+(hdp_version, hdp_version_major, hdp_version_minor, hdp_version_patch) = findVersion(profile)
+rpm_version = hdp_version.gsub /[.-]/, '_'
+package_version = "_" + (hdp_version.gsub /[.-]/, '_')
+hdp = "#{hdp_version_major}.#{hdp_version_minor}.#{hdp_version_patch}"
+# puts "rpm_version [%s]\n" % rpm_version
+# puts "package_version [%s]\n" % package_version
+platform_start_script_path = "rc.d/init.d"
+
+if profile[:vm_mem]
+  num_cpus = profile[:vm_mem]
+else
+  num_cpus = 1
+end
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  if Vagrant.has_plugin?("vagrant-cachier")
+    # Configure cached packages to be shared between instances of the same base box.
+    config.cache.scope = :box
+  end
+
+  # All Vagrant configuration is done here. The most common configuration
+  # Every Vagrant virtual environment requires a box to build off of.
+  config.vm.box = "omalley/centos6_x64"
+
+  config.vm.provider :vmware_fusion do |vm|
+    vm.vmx["memsize"] = profile[:vm_mem]
+  end
+
+  profile[:nodes].each do |node|
+    config.vm.define node[:hostname] do |node_config|
+      node_config.vm.hostname = node[:hostname] + "." + profile[:domain]
+      node_config.vm.network :private_network, ip: node[:ip]
+
+      config.vm.provider :virtualbox do |vb|
+        vb.customize ["modifyvm", :id, "--memory", node[:vm_mem] ]
+        if node[:vm_cpus]
+          vb.cpus = node[:vm_cpus]
+        else
+          vb.cpus = num_cpus
+        end
+      end
+
+      node[:forwarded_ports].each do |forwarded_port|
+        node_config.vm.network :forwarded_port, guest: forwarded_port[:guest], host: forwarded_port[:host], auto_correct: true
+      end
+
+      profile[:shared_folders].each do |shared_folder|
+        node_config.vm.synced_folder shared_folder[:host], shared_folder[:guest]
+      end
+
+      node_config.ssh.forward_agent = true
+      node_config.ssh.username = 'root'
+      node_config.ssh.password = 'vagrant'
+      node_config.ssh.insert_key = 'true'
+      node_config.vm.provision "puppet" do |puppet|
+        puppet.module_path = "modules"
+        puppet.options = [ "--libdir", "/vagrant", 
+          "--verbose", "--debug",
+          "--fileserverconfig=/vagrant/fileserver.conf"]
+        puppet.facter = {
+          "local_repo" => profile[:local_repo_path],
+          "hdp" => hdp,
+          "hostname" => node[:hostname],
+          "ip" => node[:ip],
+          "roles" => node[:roles],
+          "mail" => profile[:mail],
+          "nodes" => profile[:nodes],
+          "node_mem" => node[:vm_mem],
+          "cpus" => num_cpus,
+      	  "hdp_version" => hdp_version,
+      	  "rpm_version" => rpm_version,
+          "package_version" => package_version,
+          "domain" => profile[:domain],
+          "security" => profile[:security],
+          "realm" => profile[:realm],
+          "clients" => profile[:clients],
+          "server_mem" => node[:server_mem],
+          "client_mem" => node[:client_mem],
+          "svn_user" => profile[:svn_user],
+          "hdp_version_major" => hdp_version_major,
+          "hdp_version_minor" => hdp_version_minor,
+          "hdp_version_patch" => hdp_version_patch,
+          "profile" => profile,
+          "platform_start_script_path" => platform_start_script_path,
+          "storm_version" => profile[:storm][:version]
+        }
+      end
+    end
+  end
+
+end

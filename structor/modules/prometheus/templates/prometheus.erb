@@ -1,0 +1,111 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          prometheus
+# Required-Start:    $local_fs $network $named $time $syslog
+# Required-Stop:     $local_fs $network $named $time $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+PROMETHEUS_PATH=<%= scope.lookupvar('prometheus::PROMETHEUS_DEFAULT_DIR') %>
+PROMETHEUS_LOCAL_DIR=<%= scope.lookupvar('prometheus::PROMETHEUS_LOCAL_DIR') %>
+
+EXEC_PATH="$PROMETHEUS_PATH/prometheus -config.file=$PROMETHEUS_LOCAL_DIR/prometheus.yml"
+SVC_USER=root
+
+DAEMON="prometheus"
+
+DESC="Prometheus server"
+
+PIDFILE=/var/run/prometheus/prometheus.pid
+LOGFILE=/var/log/prometheus/prometheus.log
+
+STATUS_RUNNING=0
+STATUS_DEAD=1
+STATUS_DEAD_AND_LOCK=2
+STATUS_NOT_RUNNING=3
+STATUS_OTHER_ERROR=102
+
+start() {
+  checkstatusofproc
+  status=$?
+  if [ "$status" -eq "$STATUS_RUNNING" ]; then
+      log_success_msg "${DESC} is running"
+      exit 0
+  fi
+
+  su -s /bin/bash $SVC_USER -c "$EXEC_PATH > $LOGFILE 2>&1 < /dev/null & "'echo $! '"> $PIDFILE"
+  sleep 3
+
+  log_success_msg 'Service started'
+
+  checkstatusofproc
+  RETVAL=$?
+  return $RETVAL
+}
+
+checkstatusofproc(){
+  pidofproc -p $PIDFILE $PROC_NAME > /dev/null
+}
+
+checkstatus(){
+  checkstatusofproc
+  status=$?
+
+  case "$status" in
+    $STATUS_RUNNING)
+      log_success_msg "${DESC} is running"
+      ;;
+    $STATUS_DEAD)
+      log_failure_msg "${DESC} is dead and pid file exists"
+      ;;
+    $STATUS_DEAD_AND_LOCK)
+      log_failure_msg "${DESC} is dead and lock file exists"
+      ;;
+    $STATUS_NOT_RUNNING)
+      log_failure_msg "${DESC} is not running"
+      ;;
+    *)
+      log_failure_msg "${DESC} status is unknown"
+      ;;
+  esac
+  return $status
+}
+
+stop() {
+  if [ ! -f "$PIDFILE" ] || ! kill -0 $(cat "$PIDFILE"); then
+    log_success_msg 'Service not running'
+    return 1
+  fi
+  log_success_msg 'Stopping service…'
+  kill -15 $(cat "$PIDFILE") && rm -f "$PIDFILE"
+  
+  RETVAL=$?
+  return $RETVAL
+}
+
+service() {
+  case "$1" in
+    start)
+      start
+      ;;
+    status)
+      checkstatus
+      ;;
+    stop)
+      stop
+      ;;
+    restart)
+      stop
+      start
+      ;;
+    *)
+      echo "Usage: $0 {start|status|stop|restart}"
+  esac
+}
+
+service "$1"
+
+exit $RETVAL

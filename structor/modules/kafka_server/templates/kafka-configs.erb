@@ -1,0 +1,11 @@
+<%
+   @zookeeper_servers = eval(@nodes).
+      select {|node| node[:roles].include? 'zk'}.
+      map{|node| node[:hostname] + "." + @domain + ":2181"}.join(",");
+-%>
+#!/bin/sh
+
+# Home dir
+KAFKA_HOME=/usr/hdp/current/kafka-broker
+
+$KAFKA_HOME/bin/kafka-configs.sh --zookeeper <%= @zookeeper_servers %> "$@"

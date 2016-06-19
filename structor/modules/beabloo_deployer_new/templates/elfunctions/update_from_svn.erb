@@ -1,0 +1,134 @@
+#!/bin/bash
+set -e
+
+. /opt/scripts/library.sh
+obtainLock elfunctions_update_from_svn
+
+cd $(dirname $0)
+pwd=$(pwd)
+
+source cluster.conf
+source /etc/hadoop/conf/hadoop-env.sh
+
+if [ "$1" ] ; then
+    BRANCH="$1"
+else
+    BRANCH="branches/RB"
+fi
+
+
+SVN_USER=<%= @svn_user %>
+
+
+# --------------------------------------------------------------------------------------------
+#                                       Functions
+# --------------------------------------------------------------------------------------------
+
+function hadoop()
+{
+    sudo -u hdfs hdfs $@
+}
+
+function askToContinue()
+{
+    echo -e "$1 (y/n)"
+    read ANSWER
+    case ${ANSWER} in 
+        y|Y|yes|YES)
+            return 0
+        ;;
+        n|N|no|NO)
+            return 1
+        ;;
+        *)
+            echo "Aborted for security reasons"
+            exit 1
+        ;;
+    esac
+}
+
+# --------------------------------------------------------------------------------------------
+#                                       Main
+# --------------------------------------------------------------------------------------------
+
+clusters="pro
+pre
+hq
+"
+echo -e "\nSelect deploy environment:"
+echo "${clusters}" | nl
+read CHOICE
+cluster=$(echo "${clusters}" | sed -n "${CHOICE}p")
+
+echo -e "\nIntroduce revision number or left blank for latest revision:"
+read REVISION
+case ${REVISION} in
+        [0-9]*)
+                echo "Will use Revision ${REVISION} as Latest Revision. Is it ok ? (y/n)"
+                read ANSWER
+                case ${ANSWER} in
+                        y|Y|yes|YES)
+                                export REVISION=${REVISION}
+                                ;;
+                        n|N|no|NO)
+                                exit 0
+                ;;
+                        *)
+                                exit 0
+                esac
+                ;;
+        *)
+        echo "Normal execution: Latest Revision"
+                export REVISION=HEAD
+esac
+
+BASEURL=svn+ssh://${SVN_USER}@code.beabloo.com/opt/development/bb-repository/bigData/hadoop_v1
+
+echo -e "Retrieve files from SVN:"
+rm -rf hadoop_v1
+svn -r ${REVISION} --force export ${BASEURL}/${BRANCH} hadoop_v1
+echo ""
+
+# Build everything
+HADOOP_CLASSPATH="$(find ${hadoop_basedir}/hadoop -name \*.jar | tr '\n' ':')"
+
+(cd hadoop_v1/oozieELFunctions/src && javac $(find . -name \*.java) -classpath $HADOOP_CLASSPATH)
+
+echo -e "\nDo you want to apply changes (y/n)?:"
+read CHOICE
+case ${CHOICE} in
+    y|Y)
+        # Stop Oozie (needed for elfunctions update)
+        for f in /var/run/oozie/oozie.pid ; do
+            if test -e $f ; then
+                if xargs ps < $f ; then
+                    # ${oozie_server}/bin/oozie-stop.sh
+                    /etc/init.d/oozie stop
+                    # xargs kill -9 < $f || true
+                else
+                    rm -f $f
+                fi
+            fi
+        done
+
+        # Install elfunctions
+            for f in ${oozie_server}/libext/elfunctions.jar ; do
+            if test -e $f ; then
+                mv $f $f.bak.$(date +'%Y-%m-%d_%H:%M')
+            fi
+        done
+        (cd hadoop_v1/oozieELFunctions/src && jar -cf ${oozie_server}/libext/elfunctions.jar $(find . -name \*.class))
+        ${oozie_server}/bin/oozie-setup.sh prepare-war
+
+        # Start Oozie (don't do this as root!!)
+        # sudo -u oozie -g hadoop ${oozie_server}/bin/oozie-start.sh
+        /etc/init.d/oozie restart
+
+        ;;
+    n|n) 
+        exit 0
+        ;;
+    *)
+        exit 1
+        ;;
+esac

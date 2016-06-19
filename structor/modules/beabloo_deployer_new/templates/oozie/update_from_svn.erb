@@ -1,0 +1,165 @@
+#!/bin/bash
+set -e
+
+. /opt/scripts/library.sh
+obtainLock oozie_update_from_svn
+
+cd $(dirname $0)
+pwd=$(pwd)
+
+source cluster.conf
+source /etc/hadoop/conf/hadoop-env.sh
+
+if [ "$1" ] ; then
+    BRANCH="$1"
+else
+    BRANCH="branches/RB"
+fi
+
+SVN_USER=<%= @svn_user %>
+
+# --------------------------------------------------------------------------------------------
+#                                       Functions
+# --------------------------------------------------------------------------------------------
+
+function hadoop()
+{
+    sudo -u hdfs hdfs $@
+}
+
+function askToContinue()
+{
+    echo -e "$1 (y/n)"
+    read ANSWER
+    case ${ANSWER} in 
+        y|Y|yes|YES)
+            return 0
+        ;;
+        n|N|no|NO)
+            return 1
+        ;;
+        *)
+            echo "Aborted for security reasons"
+            exit 1
+        ;;
+    esac
+}
+
+# --------------------------------------------------------------------------------------------
+#                                       Main
+# --------------------------------------------------------------------------------------------
+
+clusters="pro
+pre
+hq
+"
+echo -e "\nSelect deploy environment:"
+echo "${clusters}" | nl
+read CHOICE
+cluster=$(echo "${clusters}" | sed -n "${CHOICE}p")
+
+echo -e "\nIntroduce revision number or left blank for latest revision:"
+read REVISION
+case ${REVISION} in
+        [0-9]*)
+                echo "Will use Revision ${REVISION} as Latest Revision. Is it ok ? (y/n)"
+                read ANSWER
+                case ${ANSWER} in
+                        y|Y|yes|YES)
+                                export REVISION=${REVISION}
+                                ;;
+                        n|N|no|NO)
+                                exit 0
+                ;;
+                        *)
+                                exit 0
+                esac
+                ;;
+        *)
+        echo "Normal execution: Latest Revision"
+                export REVISION=HEAD
+esac
+
+BASEURL=svn+ssh://${SVN_USER}@code.beabloo.com/opt/development/bb-repository/bigData/hadoop_v1
+
+echo -e "Retrieve files from SVN:"
+rm -rf hadoop_v1
+svn -r ${REVISION} --force export ${BASEURL}/${BRANCH} hadoop_v1
+echo ""
+
+rm -rf hadoop_v1/mapReduce/lib/hadoop-core-1.2.1.jar
+rm -rf hadoop_v1/hiveFunctions/lib/hadoop-common-2.2.0.jar
+
+# Build everything
+HADOOP_CLASSPATH="$(find ${hadoop_basedir}/hadoop -name \*.jar | tr '\n' ':')"
+MR_CLASSPATH="${HADOOP_CLASSPATH}$(find ${hadoop_basedir}/hadoop-mapreduce -name \*.jar | tr '\n' ':')."
+HIVE_CLASSPATH="${HADOOP_CLASSPATH}$(find ${pwd}/hadoop_v1/hiveFunctions/lib -name \*.jar | tr '\n' ':')."
+set -x
+
+(cd hadoop_v1/mapReduce/src && javac $(find . -name \*.java) -classpath $MR_CLASSPATH:${pwd}/hadoop_v1/triangulation/src)
+(cd hadoop_v1/triangulation/src && javac $(find . -name \*.java) -classpath $MR_CLASSPATH)
+(cd hadoop_v1/hiveFunctions/src && javac $(find . -name \*.java) -classpath $HIVE_CLASSPATH)
+
+set +x
+
+# Force local setup into job.properties
+for i in $(find hadoop_v1/oozie -name job-${cluster}.properties) ; do
+    dst=$(dirname $i)/job.properties
+    cat common-${cluster}.properties \
+        <(eval cat $i \
+            $(for i in $(sed -e "s/=.*//" common-${cluster}.properties) ; do echo -n " | grep -v ^$i=" ; done) \
+        ) \
+    > $dst
+done
+
+# Remove unused job.properties templates
+find hadoop_v1/oozie -name job-hq.properties -or -name job-pre.properties -or -name job-pro.properties | xargs -L1024 rm -f
+
+# Detect and report changes in job-*.properties files
+rm -rf unmodified_job_properties_from_svn
+cp -a /opt/oozie-${cluster} unmodified_job_properties_from_svn
+find unmodified_job_properties_from_svn -type f -not -name job.properties | xargs -L512 rm -f
+if ! diff_output=$(LANG=C diff -ur unmodified_job_properties_from_svn hadoop_v1/oozie) ; then
+    echo "${diff_output}" | grep -v ^O | less
+fi
+echo -e "\nDifferences between SVN & Prod:"
+rsync -anvr -c hadoop_v1/oozie/ /opt/oozie-${cluster} | grep -v "\/$"
+
+echo -e "\nDo you want to apply changes (y/n)?:"
+read CHOICE
+case ${CHOICE} in
+    y|Y)
+        rsync --del -avr -c hadoop_v1/oozie/ /opt/oozie-${cluster} | grep -v "\/$"
+
+        chown -R hdfs /opt/oozie-${cluster}
+
+        set -x
+
+        # Update jar files in HDFS
+        mkdir -p /opt/oozie-${cluster}/conf/hiveFunctions
+        hadoop dfs -mkdir -p /user/oozie/beabloo-${cluster}/conf/hiveFunctions
+        (cd hadoop_v1/hiveFunctions/src && jar -cf /opt/oozie-${cluster}/conf/hiveFunctions/HIVE.jar $(find . -name \*.class))
+        hadoop dfs -put -f /opt/oozie-${cluster}/conf/hiveFunctions/HIVE.jar /user/oozie/beabloo-${cluster}/conf/hiveFunctions/HIVE.jar
+
+        (cd hadoop_v1/mapReduce/src && jar -cf /opt/oozie-${cluster}/conf/mapReduce.jar $(find . -name \*.class))
+        (cd hadoop_v1/triangulation/src && jar -uf /opt/oozie-${cluster}/conf/mapReduce.jar $(find . -name \*.class))
+        chmod 644 /opt/oozie-${cluster}/conf/mapReduce.jar
+        hadoop dfs -put -f /opt/oozie-${cluster}/conf/mapReduce.jar /user/oozie/beabloo-${cluster}/conf/mapReduce.jar
+
+        # Update hive-site.xml in HDFS
+        hadoop dfs -put -f /etc/hive/conf/hive-site.xml /user/oozie/beabloo-${cluster}/conf/hive-site.xml
+
+        # Update workflow.xml and HIVE query files
+        hadoop dfs -rm -r -f -skipTrash /user/oozie/beabloo-${cluster}/oozie
+        hadoop dfs -put -f /opt/oozie-${cluster} /user/oozie/beabloo-${cluster}/oozie
+
+        set +x
+
+        ;;
+    n|n) 
+        exit 0
+        ;;
+    *)
+        exit 1
+        ;;
+esac
