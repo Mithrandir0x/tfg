@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -x
+
+rm -f /opt/jetty-9.3.8/webapps/log-gateway.war
+cp /vagrant/log-gateway-1.0-SNAPSHOT.war /opt/jetty-9.3.8/webapps/log-gateway.war
+
+set +x

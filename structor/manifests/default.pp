@@ -160,7 +160,7 @@ if hasrole($roles, 'beabloo_deployer_old_new') {
 }
 
 if hasrole($roles, 'log_gateway') {
-  include beabloo_log_gateway
+  include log_gateway
 }
 
 if islastslave($nodes, $hostname) {
