@@ -18,9 +18,13 @@
    @zookeepers = eval(@nodes).select {|node| node[:roles].include? 'zk'};
    @namenode = eval(@nodes).select {|node| node[:roles].include? 'nn'}[0][:hostname] + "." + @domain;
    @hiveserver = eval(@nodes).select {|node| node[:roles].include? 'hive-meta'}[0][:hostname] + "." + @domain;
-   @oozieserver = eval(@nodes).select {|node| node[:roles].include? 'oozie'}[0][:hostname] + "." + @domain;
-   @numslaves = eval(@nodes).select {|node| node[:roles].include? 'slave'
-                  }.size;
+   @numslaves = eval(@nodes).select {|node| node[:roles].include? 'slave'}.size;
+
+   @oozieserver = '';
+   @oozieNodes = eval(@nodes).select {|node| node[:roles].include? 'oozie'};
+   if @oozieNodes.size > 0
+     @oozieserver = @oozieNodes[0][:hostname] + "." + @domain;
+   end
 -%>
 
 # Hue configuration file
@@ -762,7 +766,7 @@
 
     [[[default]]]
       # Enter the host on which you are running the Hadoop JobTracker
-      jobtracker_host=<%= @oozieserver %>
+      jobtracker_host=<%= @namenode %>
 
       # The port where the JobTracker IPC listens on
       jobtracker_port=8021
