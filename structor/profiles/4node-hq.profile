@@ -1,6 +1,7 @@
 {
   "domain": "local.vm",
   "realm": "LOCAL.VM",
+  "hdp": "2.4.0",
   "security": false,
   "clients" : [ "hdfs", "hive", "yarn", "zk" ],
   "shared_folders": [
