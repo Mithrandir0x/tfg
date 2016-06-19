@@ -23,8 +23,9 @@
         { "guest": 50070, "host": 50070 },
         { "guest": 19888, "host": 19888 },
         { "guest": 9001, "host": 9001 },
-        { "guest": 8042, "host": 8042 },
+        { "guest": 8800, "host": 8800 },
         { "guest": 8088, "host": 8088 },
+        { "guest": 8042, "host": 8042 },
         { "guest": 8000, "host": 8000 },
         { "guest": 8020, "host": 8020 }
       ],
