@@ -64,7 +64,7 @@ class storm_base {
 	}
 	->
 	exec { "download-storm":
-		command => "cp /vagrant/files/beabloo/storm/storm-$VERSION.zip storm-$VERSION.zip",
+		command => "cp /vagrant/files/storm/storm-$VERSION.zip storm-$VERSION.zip",
 		path => $PATH,
 		cwd => "/tmp",
 	}

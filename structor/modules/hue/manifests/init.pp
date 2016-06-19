@@ -57,91 +57,91 @@ class hue {
   }
   ->
   exec { "hue-install-hue-common-3.8.1-1.el6.x86_64":
-    cwd => '/vagrant/files/beabloo/nn/rpm/hue-3.8.1',
+    cwd => '/vagrant/files/nn/rpm/hue-3.8.1',
     command => 'yum -y install ./hue-common-3.8.1-1.el6.x86_64.rpm',
     path => "$path"
   }
   ->
   exec { "hue-install-hue-useradmin-3.8.1-1.el6.x86_64":
-    cwd => '/vagrant/files/beabloo/nn/rpm/hue-3.8.1',
+    cwd => '/vagrant/files/nn/rpm/hue-3.8.1',
     command => 'yum -y install ./hue-useradmin-3.8.1-1.el6.x86_64.rpm',
     path => "$path"
   }
   ->
   exec { "hue-install-hue-security-3.8.1-1.el6.x86_64":
-    cwd => '/vagrant/files/beabloo/nn/rpm/hue-3.8.1',
+    cwd => '/vagrant/files/nn/rpm/hue-3.8.1',
     command => 'yum -y install ./hue-security-3.8.1-1.el6.x86_64.rpm',
     path => "$path"
   }
   ->
   exec { "hue-install-hue-doc-3.8.1-1.el6.x86_64":
-    cwd => '/vagrant/files/beabloo/nn/rpm/hue-3.8.1',
+    cwd => '/vagrant/files/nn/rpm/hue-3.8.1',
     command => 'yum -y install ./hue-doc-3.8.1-1.el6.x86_64.rpm',
     path => "$path"
   }
   ->
   exec { "hue-install-hue-server-3.8.1-1.el6.x86_64":
-    cwd => '/vagrant/files/beabloo/nn/rpm/hue-3.8.1',
+    cwd => '/vagrant/files/nn/rpm/hue-3.8.1',
     command => 'yum -y install ./hue-server-3.8.1-1.el6.x86_64.rpm',
     path => "$path"
   }
   ->
   exec { "hue-install-hue-zookeeper-3.8.1-1.el6.x86_64":
-    cwd => '/vagrant/files/beabloo/nn/rpm/hue-3.8.1',
+    cwd => '/vagrant/files/nn/rpm/hue-3.8.1',
     command => 'yum -y install ./hue-zookeeper-3.8.1-1.el6.x86_64.rpm',
     path => "$path"
   }
   ->
   exec { "hue-install-hue-beeswax-3.8.1-1.el6.x86_64":
-    cwd => '/vagrant/files/beabloo/nn/rpm/hue-3.8.1',
+    cwd => '/vagrant/files/nn/rpm/hue-3.8.1',
     command => 'yum -y install ./hue-beeswax-3.8.1-1.el6.x86_64.rpm',
     path => "$path"
   }
   ->
   exec { "hue-install-hue-hbase-3.8.1-1.el6.x86_64":
-    cwd => '/vagrant/files/beabloo/nn/rpm/hue-3.8.1',
+    cwd => '/vagrant/files/nn/rpm/hue-3.8.1',
     command => 'yum -y install ./hue-hbase-3.8.1-1.el6.x86_64.rpm',
     path => "$path"
   }
   ->
   exec { "hue-install-hue-impala-3.8.1-1.el6.x86_64":
-    cwd => '/vagrant/files/beabloo/nn/rpm/hue-3.8.1',
+    cwd => '/vagrant/files/nn/rpm/hue-3.8.1',
     command => 'yum -y install ./hue-impala-3.8.1-1.el6.x86_64.rpm',
     path => "$path"
   }
   ->
   exec { "hue-install-hue-pig-3.8.1-1.el6.x86_64":
-    cwd => '/vagrant/files/beabloo/nn/rpm/hue-3.8.1',
+    cwd => '/vagrant/files/nn/rpm/hue-3.8.1',
     command => 'yum -y install ./hue-pig-3.8.1-1.el6.x86_64.rpm',
     path => "$path"
   }
   ->
   exec { "hue-install-hue-rdbms-3.8.1-1.el6.x86_64":
-    cwd => '/vagrant/files/beabloo/nn/rpm/hue-3.8.1',
+    cwd => '/vagrant/files/nn/rpm/hue-3.8.1',
     command => 'yum -y install ./hue-rdbms-3.8.1-1.el6.x86_64.rpm',
     path => "$path"
   }
   ->
   exec { "hue-install-hue-search-3.8.1-1.el6.x86_64":
-    cwd => '/vagrant/files/beabloo/nn/rpm/hue-3.8.1',
+    cwd => '/vagrant/files/nn/rpm/hue-3.8.1',
     command => 'yum -y install ./hue-search-3.8.1-1.el6.x86_64.rpm',
     path => "$path"
   }
   ->
   exec { "hue-install-hue-spark-3.8.1-1.el6.x86_64":
-    cwd => '/vagrant/files/beabloo/nn/rpm/hue-3.8.1',
+    cwd => '/vagrant/files/nn/rpm/hue-3.8.1',
     command => 'yum -y install ./hue-spark-3.8.1-1.el6.x86_64.rpm',
     path => "$path"
   }
   ->
   exec { "hue-install-hue-sqoop-3.8.1-1.el6.x86_64":
-    cwd => '/vagrant/files/beabloo/nn/rpm/hue-3.8.1',
+    cwd => '/vagrant/files/nn/rpm/hue-3.8.1',
     command => 'yum -y install ./hue-sqoop-3.8.1-1.el6.x86_64.rpm',
     path => "$path"
   }
   ->
   exec { "hue-install-hue-3.8.1-1.el6.x86_64":
-    cwd => '/vagrant/files/beabloo/nn/rpm/hue-3.8.1',
+    cwd => '/vagrant/files/nn/rpm/hue-3.8.1',
     command => 'yum -y install ./hue-3.8.1-1.el6.x86_64.rpm',
     path => "$path"
   }
