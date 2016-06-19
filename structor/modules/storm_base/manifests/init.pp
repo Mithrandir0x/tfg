@@ -21,17 +21,17 @@ class storm_base {
 		path => $PATH,
 	}
 	->
-	exec { "create-home-folder":
+	exec { "create-home-folder-storm":
 		command => "mkdir -p /user/storm",
 		path => $PATH,
 	}
 	->
-	exec { "create-pid-folder":
+	exec { "create-pid-folder-storm":
 		command => "mkdir -p /var/run/storm/",
 		path => $PATH,
 	}
 	->
-	exec { "create-log-folder":
+	exec { "create-log-folder-storm":
 		command => "mkdir -p /var/log/storm",
 		path => $PATH,
 	}
@@ -42,22 +42,22 @@ class storm_base {
 		cwd => "/tmp",
 	}
 	->
-	exec { "set-perms-home-folder":
+	exec { "set-perms-home-folder-storm":
 		command => "chmod 700 /user/storm & chown -R storm:storm /user/storm",
 		path => $PATH,
 	}
 	->
-	exec { "chown-pid-folder":
+	exec { "chown-pid-folder-storm":
 		command => "chmod 700 /var/run/storm & chown -R storm:storm /var/run/storm",
 		path => $PATH,
 	}
 	->
-	exec { "chown-log-folder":
+	exec { "chown-log-folder-storm":
 		command => "chmod 700 /var/log/storm & chown -R storm:storm /var/log/storm",
 		path => $PATH,
 	}
 	->
-	exec { "set-pwd-exp":
+	exec { "set-pwd-exp-storm":
 		command => "chage -I -1 -E -1 -m -1 -M -1 -W -1 -E -1 storm",
 		path => $PATH,
 		cwd => "/tmp",
@@ -102,7 +102,7 @@ class storm_base {
 		path => $PATH,
 	}
 	->
-	exec { "set-perms-app-folder":
+	exec { "set-perms-app-folder-storm":
 		command => "chmod 750 $STORM_LOCAL_DIR",
 		path => $PATH,
 	}
