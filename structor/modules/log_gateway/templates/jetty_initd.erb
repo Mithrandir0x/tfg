@@ -10,4 +10,4 @@
 
 . /etc/profile.d/jetty.sh
 . /etc/profile.d/java.sh
-<%= scope.lookupvar('beabloo_log_gateway::JETTY_DEFAULT_DIR') %>/bin/jetty.sh "$@"
+<%= scope.lookupvar('log_gateway::JETTY_DEFAULT_DIR') %>/bin/jetty.sh "$@"
