@@ -1,8 +1,6 @@
 
 class prometheus {
 
-    require statsd
-
     $PATH = "/bin:/usr/bin:/usr/sbin"
 
     $PROMETHEUS_DIR = "/opt/prometheus"
