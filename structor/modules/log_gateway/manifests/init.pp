@@ -69,7 +69,7 @@ class log_gateway {
   ->
   file { "$JETTY_DEFAULT_DIR/start.ini":
     ensure => "present",
-    content => template("beabloo_log_gateway/start.erb")
+    content => template("log_gateway/start.erb")
   }
   ->
   exec { "mkdir -p /opt/scripts/jetty":
@@ -79,19 +79,19 @@ class log_gateway {
   ->
   file { "/opt/scripts/jetty/deploy_log_gateway.sh":
     ensure => "present",
-    content => template("beabloo_log_gateway/deploy_log_gateway.erb"),
+    content => template("log_gateway/deploy_log_gateway.erb"),
     mode => "700"
   }
   ->
   file { "/etc/profile.d/jetty.sh":
     ensure => "present",
-    content => template("beabloo_log_gateway/jetty_env.erb"),
+    content => template("log_gateway/jetty_env.erb"),
     mode => "700"
   }
   ->
   file { "/etc/init.d/jetty":
     ensure => "present",
-    content => template("beabloo_log_gateway/jetty_initd.erb"),
+    content => template("log_gateway/jetty_initd.erb"),
     mode => "700"
   }
   ->
