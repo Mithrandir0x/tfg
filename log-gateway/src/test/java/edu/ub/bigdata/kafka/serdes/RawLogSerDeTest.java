@@ -1,4 +1,4 @@
-package edu.ub.bigdata.loggateway.integrations.kafka.serdes;
+package edu.ub.bigdata.kafka.serdes;
 
 import edu.ub.bigdata.model.RawLog;
 import org.junit.Test;

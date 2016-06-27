@@ -1,6 +1,6 @@
 package edu.ub.bigdata.loggateway.integrations.kafka;
 
-import edu.ub.bigdata.loggateway.integrations.kafka.serdes.RawLogSerDe;
+import edu.ub.bigdata.kafka.serdes.RawLogSerDe;
 import edu.ub.bigdata.model.RawLog;
 import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.LongSerializer;

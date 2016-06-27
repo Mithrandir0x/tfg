@@ -4,15 +4,16 @@ class grafana {
     require prometheus
 
     $PATH = "/bin:/usr/bin:/usr/sbin"
+    $VERSION = '3.0.4-1464167696'
 
     exec { "download-grafana":
-        command => "wget https://grafanarel.s3.amazonaws.com/builds/grafana-2.6.0-1.x86_64.rpm",
+        command => "wget https://grafanarel.s3.amazonaws.com/builds/grafana-$VERSION.linux-x64.tar.gz",
         cwd => "/tmp",
         path => $PATH,
     }
     ->
     exec { "install-grafana":
-        command => "yum install -y grafana-2.6.0-1.x86_64.rpm",
+        command => "yum install -y grafana-$VERSION.linux-x64.tar.gz",
         cwd => "/tmp",
         path => $PATH,
     }

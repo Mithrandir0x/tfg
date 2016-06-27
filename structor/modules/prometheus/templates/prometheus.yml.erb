@@ -28,3 +28,8 @@ scrape_configs:
 
     target_groups:
       - targets: ['localhost:9090']
+
+  - job_name: 'pushgateway'
+    scrape_interval: 1s
+    static_configs:
+      - targets: ['localhost:9091']

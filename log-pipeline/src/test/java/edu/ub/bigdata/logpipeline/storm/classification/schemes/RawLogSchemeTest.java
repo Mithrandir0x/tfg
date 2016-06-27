@@ -1,6 +1,6 @@
 package edu.ub.bigdata.logpipeline.storm.classification.schemes;
 
-import edu.ub.bigdata.loggateway.integrations.kafka.serdes.RawLogSerDe;
+import edu.ub.bigdata.kafka.serdes.RawLogSerDe;
 import edu.ub.bigdata.model.RawLog;
 import org.junit.Test;
 
