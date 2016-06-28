@@ -13,7 +13,7 @@ class grafana {
     }
     ->
     exec { "install-grafana":
-        command => "yum -y install ./grafana-$VERSION.linux-x64.rpm",
+        command => "yum -y install grafana-$VERSION.x86_64.rpm",
         cwd => "/tmp",
         path => $PATH,
     }
