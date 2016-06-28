@@ -25,7 +25,7 @@ class zeromq {
 	}
 	->
 	exec { "download-zmq":
-		command => "cp /vagrant/files/storm/zeromq-$VERSION.tar.gz",
+		command => "cp /vagrant/files/storm/zeromq-$VERSION.tar.gz .",
 		path => $PATH,
 		cwd => "/tmp",
 	}
