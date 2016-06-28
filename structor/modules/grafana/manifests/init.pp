@@ -7,13 +7,13 @@ class grafana {
     $VERSION = '3.0.4-1464167696'
 
     exec { "download-grafana":
-        command => "wget https://grafanarel.s3.amazonaws.com/builds/grafana-$VERSION.linux-x64.tar.gz",
+        command => "cp /vagrant/files/grafana/grafana-$VERSION.x86_64.rpm .",
         cwd => "/tmp",
         path => $PATH,
     }
     ->
     exec { "install-grafana":
-        command => "yum install -y grafana-$VERSION.linux-x64.tar.gz",
+        command => "yum -y install grafana-$VERSION.linux-x64.rpm",
         cwd => "/tmp",
         path => $PATH,
     }
