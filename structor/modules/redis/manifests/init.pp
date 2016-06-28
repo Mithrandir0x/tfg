@@ -44,5 +44,10 @@ class redis {
 		command => "/tmp/install_redis_service.sh",
 		path => $PATH,
 	}
+	->
+	service { 'redis_6379':
+		ensure => running,
+		enable => true,
+	}
 
 }
