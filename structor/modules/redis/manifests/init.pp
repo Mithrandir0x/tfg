@@ -1,7 +1,7 @@
 
 class redis {
 
-	$PATH = "/bin:/usr/bin:/usr/sbin"
+	$PATH = "/bin:/usr/bin:/usr/sbin:/usr/local/bin/"
 	$VERSION = '3.2.1'
 
 	exec { "download-redis":
@@ -37,11 +37,11 @@ class redis {
 	file { '/tmp/install_redis_service.sh':
 		ensure => file,
 		content => template('redis/install_redis_service.erb'),
-		mode => 'a+rx',
+		mode => '+x',
 	}
 	->
 	exec { "install-service-redis":
-		command => "install_redis_service.sh",
+		command => "/tmp/install_redis_service.sh",
 		path => $PATH,
 		cwd => "/tmp",
 	}
