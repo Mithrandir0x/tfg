@@ -34,8 +34,14 @@ class redis {
 		cwd => "/opt/redis-$VERSION",
 	}
 	->
+	file { '/tmp/install_redis_service.sh':
+		ensure => file,
+		content => template('redis/install_redis_service.erb'),
+		mode => 'a+rx',
+	}
+	->
 	exec { "install-service-redis":
-		command => "/vagrant/modules/redis/files/install_redis_service.sh",
+		command => "/tmp/install_redis_service.sh",
 		path => $PATH,
 	}
 
