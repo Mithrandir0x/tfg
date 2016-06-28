@@ -33,5 +33,10 @@ class redis {
 		path => $PATH,
 		cwd => "/opt/redis-$VERSION",
 	}
+	->
+	exec { "install-service-redis":
+		command => "/vagrant/modules/redis/files/install_redis_service.sh",
+		path => $PATH,
+	}
 
 }
