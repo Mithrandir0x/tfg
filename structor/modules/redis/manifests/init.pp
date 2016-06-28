@@ -2,41 +2,36 @@
 class redis {
 
 	$PATH = "/bin:/usr/bin:/usr/sbin"
+	$VERSION = '3.2.1'
 
 	exec { "download-redis":
-		command => "cp /vagrant/files/redis/redis-2.8.3.tar.gz .",
+		command => "cp /vagrant/files/redis/redis-$VERSION.tar.gz .",
 		path => $PATH,
 		cwd => "/tmp",
 	}
 	->
 	exec { "untar-redis":
-		command => "tar -zxvf redis-2.8.3.tar.gz",
+		command => "tar -zxvf redis-$VERSION.tar.gz",
 		path => $PATH,
 		cwd => "/tmp",
 	}
 	->
 	exec { "move-redis":
-		command => "mv redis-2.8.3 /opt/",
+		command => "mv redis-$VERSION /opt/",
 		path => $PATH,
 		cwd => "/tmp",
 	}
 	->
 	exec { "make-redis":
-		command => "make && make install",
+		command => "make",
 		path => $PATH,
-		cwd => "/opt/redis-2.8.3",
+		cwd => "/opt/redis-$VERSION",
 	}
 	->
 	exec { "install-redis":
 		command => "make install",
 		path => $PATH,
-		cwd => "/opt/redis-2.8.3",
-	}
-	->
-	exec { "test-redis":
-		command => "make test",
-		path => $PATH,
-		cwd => "/opt/redis-2.8.3",
+		cwd => "/opt/redis-$VERSION",
 	}
 
 }
