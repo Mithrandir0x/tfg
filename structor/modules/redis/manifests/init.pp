@@ -41,8 +41,9 @@ class redis {
 	}
 	->
 	exec { "install-service-redis":
-		command => "/tmp/install_redis_service.sh",
+		command => "bash install_redis_service.sh",
 		path => $PATH,
+		cwd => "/tmp",
 	}
 	->
 	service { 'redis_6379':
