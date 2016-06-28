@@ -13,8 +13,8 @@ public class LogClassificationTopology {
 
     public static void main(String[] args) {
 
-        if ( args.length != 1 ) {
-            System.out.println(String.format(" usage: To be disclosed"));
+        if ( args.length != 2 ) {
+            System.out.println(String.format(" usage: storm jar $JAR_PATH %s RawLogConsumerTopology $ZOOKEEPER_HOSTS", LogClassificationTopology.class.getName()));
             return;
         }
 
@@ -22,7 +22,7 @@ public class LogClassificationTopology {
             TopologyBuilder builder = new TopologyBuilder();
             Config config = new Config();
 
-            RawLogKafkaSpout rawLogKafkaSpout = new RawLogKafkaSpout();
+            RawLogKafkaSpout rawLogKafkaSpout = new RawLogKafkaSpout(args[1]);
             builder.setSpout(RawLogKafkaSpout.ID, rawLogKafkaSpout, 4);
 
             RawLogProtocolSplitterBolt rawLogProtocolSplitterBolt = new RawLogProtocolSplitterBolt();
@@ -38,7 +38,7 @@ public class LogClassificationTopology {
                     .shuffleGrouping(YaelpUnpackerBolt.ID);
 
             LogHdfsBolt hdfsBolt = new LogHdfsBolt("/engine2_big_data/yaelp/");
-            builder.setBolt("YAELP_HDFS_BOLT_ID", hdfsBolt)
+            builder.setBolt(LogHdfsBolt.ID, hdfsBolt)
                     .shuffleGrouping(YaelpModelParserBolt.ID);
 
             config.setNumWorkers(4);

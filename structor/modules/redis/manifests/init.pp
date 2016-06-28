@@ -4,7 +4,7 @@ class redis {
 	$PATH = "/bin:/usr/bin:/usr/sbin"
 
 	exec { "download-redis":
-		command => "wget http://download.redis.io/releases/redis-2.8.3.tar.gz",
+		command => "cp /vagrant/files/redis/redis-2.8.3.tar.gz .",
 		path => $PATH,
 		cwd => "/tmp",
 	}
@@ -21,8 +21,20 @@ class redis {
 		cwd => "/tmp",
 	}
 	->
-	exec { "make-install-redis":
+	exec { "make-redis":
 		command => "make && make install",
+		path => $PATH,
+		cwd => "/opt/redis-2.8.3",
+	}
+	->
+	exec { "install-redis":
+		command => "make install",
+		path => $PATH,
+		cwd => "/opt/redis-2.8.3",
+	}
+	->
+	exec { "test-redis":
+		command => "make test",
 		path => $PATH,
 		cwd => "/opt/redis-2.8.3",
 	}

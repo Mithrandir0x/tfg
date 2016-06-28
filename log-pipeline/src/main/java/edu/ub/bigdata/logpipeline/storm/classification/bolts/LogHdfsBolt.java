@@ -12,6 +12,8 @@ import org.apache.storm.hdfs.bolt.sync.SyncPolicy;
 
 public class LogHdfsBolt extends HdfsBolt {
 
+    public static final String ID = "YAELP_HDFS_BOLT_ID";
+
     public LogHdfsBolt(String path) {
         super();
 
