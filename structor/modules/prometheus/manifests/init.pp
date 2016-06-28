@@ -13,8 +13,8 @@ class prometheus {
 
     $GROUP_ID = '63001'
 
-    $VERSION_SANS_PLATFORM = '0.18.0'
-    $VERSION = '0.18.0.linux-amd64'
+    $VERSION_SANS_PLATFORM = '0.20.0'
+    $VERSION = '0.20.0.linux-amd64'
 
     $PUSHGATEWAY_VERSION_SANS_PLATFORM = '0.3.0'
     $PUSHGATEWAY_VERSION = '0.3.0.linux-amd64'
@@ -77,13 +77,13 @@ class prometheus {
     }
     ->
     exec { "download-prometheus":
-        command => "wget https://github.com/prometheus/prometheus/releases/download/$VERSION_SANS_PLATFORM/prometheus-$VERSION.tar.gz",
+        command => "cp /vagrant/files/prometheus/prometheus-$VERSION.tar.gz .",
         path => $PATH,
         cwd => "/tmp",
     }
     ->
     exec { "download-prometheus-pushgateway":
-        command => "wget https://github.com/prometheus/pushgateway/releases/download/$PUSHGATEWAY_VERSION_SANS_PLATFORM/pushgateway-$PUSHGATEWAY_VERSION.tar.gz",
+        command => "cp /vagrant/files/prometheus/pushgateway-$PUSHGATEWAY_VERSION.tar.gz .",
         path => $PATH,
         cwd => "/tmp",
     }
