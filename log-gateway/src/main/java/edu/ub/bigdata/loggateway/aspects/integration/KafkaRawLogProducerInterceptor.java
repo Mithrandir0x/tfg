@@ -9,7 +9,7 @@ import org.aspectj.lang.annotation.Aspect;
 @Aspect
 public class KafkaRawLogProducerInterceptor {
 
-    @Around("execution(* (@edu.ub.bigdata.loggateway.aspects.integration.KafkaRawLogProducer edu.ub.bigdata.loggateway.LogListener+).onStoreLogObject(..))")
+    @Around("execution(* (@edu.ub.bigdata.loggateway.aspects.integration.KafkaRawLogProducer edu.ub.bigdata.loggateway.LogListener+).onStoreRawLog(..))")
     public void sendToKafka(ProceedingJoinPoint pjp) throws Throwable {
         pjp.proceed();
 
