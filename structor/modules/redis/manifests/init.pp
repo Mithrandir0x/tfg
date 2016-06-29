@@ -45,10 +45,5 @@ class redis {
 		path => $PATH,
 		cwd => "/tmp",
 	}
-	->
-	exec { "start-service-redis":
-		command => "service redis_6379 start",
-		path => $PATH,
-	}
 
 }
