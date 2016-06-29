@@ -3,21 +3,23 @@ package edu.ub.bigdata.loggateway;
 import edu.ub.bigdata.model.RawLog;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-public interface LogListener<INPUT, OUTPUT> {
+public interface LogListener {
 
-    void onIncomingLog(INPUT input) throws ServletException, IOException;
+    void onIncomingLog(HttpServletRequest input) throws ServletException, IOException;
 
-    void onValidLog(INPUT input, OUTPUT output) throws ServletException, IOException;
+    void onValidLog(HttpServletRequest input, HttpServletResponse output) throws ServletException, IOException;
 
-    void onInvalidLog(INPUT input, OUTPUT output) throws ServletException, IOException;
+    void onInvalidLog(HttpServletRequest input, HttpServletResponse output) throws ServletException, IOException;
 
-    void onException(INPUT input, OUTPUT output, Throwable ex) throws ServletException, IOException;
+    void onException(HttpServletRequest input, HttpServletResponse output, Throwable ex) throws ServletException, IOException;
 
-    boolean validateIncomingLog(INPUT input);
+    boolean validateIncomingLog(HttpServletRequest input);
 
-    RawLog getRawLog(INPUT input);
+    RawLog getRawLog(HttpServletRequest input);
 
     void onStoreRawLog(RawLog rawLog) throws Exception;
 

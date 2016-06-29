@@ -9,7 +9,7 @@ import org.aspectj.lang.annotation.Aspect;
 @Aspect
 public class FileStorageInterceptor {
 
-    @Around("execution(* (@edu.ub.bigdata.loggateway.aspects.integration.FileStorage edu.ub.bigdata.loggateway.LogListener<INPUT, OUTPUT>+).onStoreLogObject(..))")
+    @Around("execution(* (@edu.ub.bigdata.loggateway.aspects.integration.FileStorage edu.ub.bigdata.loggateway.LogListener+).onStoreLogObject(..))")
     public void saveToFileSystem(ProceedingJoinPoint pjp) throws Throwable {
         pjp.proceed();
 
