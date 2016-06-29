@@ -44,7 +44,7 @@
 	    { "guest": 6379, "host": 6379 },
         { "guest": 3000, "host": 3000 }
       ],
-      "roles": [ "grafana", "redis", "zk", "client" ]
+      "roles": [ "grafana", "redis", "zk", "client", "slave" ]
     },
     {
       "hostname": "data1",
