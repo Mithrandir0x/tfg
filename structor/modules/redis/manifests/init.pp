@@ -46,9 +46,9 @@ class redis {
 		cwd => "/tmp",
 	}
 	->
-	service { 'redis_6379':
-		ensure => running,
-		enable => true,
+	exec { "start-service-redis":
+		command => "service redis_6379 start",
+		path => $PATH,
 	}
 
 }

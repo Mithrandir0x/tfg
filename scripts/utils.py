@@ -6,7 +6,8 @@ import time
 import random
 import md5
 
-endpoints = ['kafka1.local.vm:18081', 'kafka2.local.vm:18082', 'kafka3.local.vm:18083', 'kafka4.local.vm:18084']
+# endpoints = ['kafka1.local.vm:18081', 'kafka2.local.vm:18082', 'kafka3.local.vm:18083', 'kafka4.local.vm:18084']
+endpoints = ['data1.local.vm:18081', 'data2.local.vm:18082']
 context = '/log-gateway'
 activityTrackingPath = '/activityTracking'
 
