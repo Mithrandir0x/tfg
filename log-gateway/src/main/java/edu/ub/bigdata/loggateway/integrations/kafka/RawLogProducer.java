@@ -53,6 +53,7 @@ public class RawLogProducer {
     public void send(RawLog rawLog) {
         long timestamp = System.currentTimeMillis();
         ProducerRecord<Long, RawLog> message = new ProducerRecord<>(baseTopic, timestamp, rawLog);
+        System.out.println(String.format("Storing message [%s] at [%s]...", rawLog, timestamp));
         producer.send(message, (RecordMetadata metadata, Exception exception) -> {
             if ( exception == null ) {
                 System.out.println(String.format("Sent message [%s] to kafka [ topic [%s] partition [%s] offset [%s] ]...",
