@@ -57,7 +57,7 @@
                             </div>
                             <div class="fragment" style="float: left; width: 208px; margin-right: 16px;">
                                 <img src="img/presentation_diagram_current_architecture_part_02.png" style="width: 208px; margin-top: 32px; background: rgba(113, 233, 244, 0.15);">
-                                <p style="margin-top:54px;">Es processa a un servei web:</p>
+                                <p style="margin-top:54px; font-size: 78%;">El dispositiu l'envia a un servei web per a:</p>
                                 <ul>
                                     <li>Validació</li>
                                     <li>Enriquiment</li>
@@ -65,10 +65,10 @@
                             </div>
                             <div class="fragment" style="float: left; width: 208px; margin-right: 16px;">
                                 <img src="img/presentation_diagram_current_architecture_part_03.png" style="width: 208px; margin-top: 48px; background: rgba(113, 233, 244, 0.15);">
-                                <p style="margin-top:76px;">S'envia al cluster</p>
+                                <p style="margin-top:76px;">L'evidència es canalitza a través de Flume</p>
                             </div>
                             <div class="fragment" style="float: left; width: 208px;">
-                                <img src="img/presentation_diagram_current_architecture_part_04.png" style="width: 208px; margin-top: 40px; background: rgba(113, 233, 244, 0.15);">
+                                <img src="img/presentation_diagram_current_architecture_part_04.png" style="width: 208px; margin-top: 40px; background: rgba(113, 233, 244, 0.15);a">
                                 <p style="margin-top:64px;">Eventualment, acaba sent persistida al cluster</p>
                             </div>
                             <div style="clear: both;"></div>
@@ -136,6 +136,34 @@
                 
                 <section>
                     <h2>Processament de missatges en temps real</h2>
+                        <div style="">
+                            <div class="fragment" style="float: left; width: 254px; margin-right: 16px;">
+                                <img src="img/presentation_diagram_new_architecture_part_01.png" style="width: 254px; background: rgba(255, 255, 255, 0.75);">
+                                <p>Log Gateway</p>
+                                <p>
+                                    <a href="http://martinfowler.com/articles/microservices.html" alt="Definició de microserveis per Martin Fowler">Microserveis</a>
+                                </p>
+                            </div>
+                            <div class="fragment" style="float: left; width: 208px; margin-right: 16px;">
+                                <img src="img/presentation_diagram_new_architecture_part_02.png" style="width: 208px; margin-top: 72px; background: rgba(255, 255, 255, 0.75);">
+                                <p style="margin-top:54px; font-size: 78%;">
+                                    <a href="http://kafka.apache.org/">Apache Kafka:</a>
+                                </p>
+                                <p>
+                                    "Message Broker"
+                                </p>
+                            </div>
+                            <div class="fragment" style="float: left; width: 466px;">
+                                <img src="img/presentation_diagram_new_architecture_part_03.png" style="width: 466px; margin-top: 64px; background: rgba(255, 255, 255, 0.75);">
+                                <p style="margin-top:0px;">
+                                    Log Pipeline
+                                </p>
+                                <p>
+                                    Processador de dades en temps real bassat en <a href="http://storm.apache.org/">Apache Storm</a>
+                                </p>
+                            </div>
+                            <div style="clear: both;"></div>
+                        </div>
                 </section>
                 
                 <section>
