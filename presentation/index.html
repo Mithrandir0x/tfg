@@ -49,86 +49,93 @@
 
                 <section>
                     <section>
-                        <h2>Característiques</h2>
-                        <ul>
-                            <li class="fragment">
-                                Arquitectura de 3 capes:
+                        <h2>Processament de missatges</h2>
+                        <div style="">
+                            <div class="fragment" style="float: left; width: 254px; margin-right: 16px;">
+                                <img src="img/presentation_diagram_current_architecture_part_01.png" style="width: 254px; background: rgba(113, 233, 244, 0.15);">
+                                <p>Es genera l'evidència i és capturada per un dispositiu</p>
+                            </div>
+                            <div class="fragment" style="float: left; width: 208px; margin-right: 16px;">
+                                <img src="img/presentation_diagram_current_architecture_part_02.png" style="width: 208px; margin-top: 32px; background: rgba(113, 233, 244, 0.15);">
+                                <p style="margin-top:54px;">Es processa a un servei web:</p>
                                 <ul>
-                                    <li>ROBOT</li>
-                                    <li>KERNEL</li>
-                                    <li>HAL</li>
+                                    <li>Validació</li>
+                                    <li>Enriquiment</li>
                                 </ul>
-                            </li>
-                            <li class="fragment">
-                                Permet la instal·lació de programes independents
-                                <ul>
-                                    <li>Fins a 16 programes diferents</li>
-                                    <li>Cicle de vida dels programes simple al només permetre l'execució d'un programa</li>
-                                </ul>
-                            </li>
-                            <li class="fragment">Interfície de menú per navegar pels diferents programes</li>
-                        </ul>
+                            </div>
+                            <div class="fragment" style="float: left; width: 208px; margin-right: 16px;">
+                                <img src="img/presentation_diagram_current_architecture_part_03.png" style="width: 208px; margin-top: 48px; background: rgba(113, 233, 244, 0.15);">
+                                <p style="margin-top:76px;">S'envia al cluster</p>
+                            </div>
+                            <div class="fragment" style="float: left; width: 208px;">
+                                <img src="img/presentation_diagram_current_architecture_part_04.png" style="width: 208px; margin-top: 40px; background: rgba(113, 233, 244, 0.15);">
+                                <p style="margin-top:64px;">Eventualment, acaba sent persistida al cluster</p>
+                            </div>
+                            <div style="clear: both;"></div>
+                        </div>
                     </section>
                     <section>
+                        <h2>Problemes existents</h2>
+                        <div style="">
+                            <div style="float: left; width: 254px; margin-right: 16px;">
+                                <img src="img/presentation_diagram_current_architecture_part_01.png" style="width: 254px;">
+                            </div>
+                            <div style="float: left; width: 208px; margin-right: 16px;">
+                                <img src="img/presentation_diagram_current_architecture_part_02.png" style="width: 208px; margin-top: 32px;">
+                            </div>
+                            <div style="float: left; width: 208px; margin-right: 16px;">
+                                <img src="img/presentation_diagram_current_architecture_part_03.png" style="width: 208px; margin-top: 48px;">
+                            </div>
+                            <div style="float: left; width: 208px;">
+                                <img src="img/presentation_diagram_current_architecture_part_04.png" style="width: 208px; margin-top: 40px;">
+                            </div>
+                            <div style="clear: both;"></div>
+                        </div>
+                        <div>
+                            <div class="fragment" style="float: left; width: 254px; margin-right: 16px;">
+                                <p style="font-size: 95%;">
+                                    Poden haver problemes de duplicitats de diferents fonts d'origen.
+                                </p>
+                            </div>
+                            <div class="fragment" style="float: left; width: 208px; margin-right: 16px;">
+                                <p style="font-size: 85%;">
+                                    La validació feta pel servidor web és extremadament costosa.
+                                </p>
+                            </div>
+                            <div class="fragment" style="float: left; width: 208px; margin-right: 16px;">
+                                <p style="font-size: 95%;">
+                                    Les evidències no arriben prou aviat.
+                                </p>
+                            </div>
+                            <div class="fragment" style="float: left; width: 208px;">
+                                <p style="font-size: 85%;">
+                                    No existeix cap component de monitoratge actiu sobre el processament d'evidències.
+                                </p>
+                            </div>
+                            <div style="clear: both;"></div>
+                        </div>
+                    </section>
+                    <section>
+                        <h2>Objectius</h2>
                         <ul>
-                            <li>
-                                Programes instal·lats
-                                <ul>
-                                    <li>
-                                        robot <br />
-                                        <small><strong>EL ROBOT</strong></small>
-                                    </li>
-                                    <li>
-                                        robot-config <br />
-                                        <small>Exemple d'aplicació que depén d'una altre per funcionar</small>
-                                    </li>
-                                    <li>
-                                        diag-sensor <br />
-                                        <small>Programa per diagnosticar les lectures IR del sensor</small>
-                                    </li>
-                                    <li>
-                                        test-motors <br />
-                                        <small>
-                                            Permet treballar amb els motors donant-lis ordres. Utilitza la
-                                            llibreria <strong>motor</strong> per enviar comandes als motors
-                                        </small>
-                                    </li>
-                                </ul>
+                            <li class="fragment">
+                                Definir una arquitectura més escalable.
                             </li>
-                            <li style="padding-top: 1em;">
-                                Llibreries disponibles (No són estàtiques!)
-                                <ul>
-                                    <li>
-                                        motor <br />
-                                        <small>
-                                            Petita llibreria de funcions útils per ordenar els motors a actuar
-                                            com si fosin un vehicle mòbil
-                                        </small>
-                                    </li>
-                                </ul>
+                            <li class="fragment">
+                                Processar les evidències més ràpidament.
+                            </li>
+                            <li class="fragment">
+                                Monitorar els diferents entorns per avaluar el seu rendiment.
+                            </li>
+                            <li class="fragment">
+                                Evitar la duplicitat de processament d'evències.
                             </li>
                         </ul>
                     </section>
                 </section>
                 
                 <section>
-                    <h2>BIOS? Per què BIOS?</h2>
-                    <p class="fragment" style="margin-top: 1em;">És el punt d'entrada del sistema</p>
-                    <p class="fragment" style="margin-top: 1em;">És dins de la capa <strong>ROBOT</strong></p>
-                    <p class="fragment" style="margin-top: 1em;">
-                        Però si és la capa que abstreu més funcionalitat, com és que té la BIOS?
-                        No hauria d'estar en una altra capa?
-                        <p class="fragment" style="color: #13daec">
-                            Per simplicitat
-                        </p>
-                    </p>
-                    <p class="fragment"  style="margin-top: 1em;">
-                        És en aquest punt on declarem les <strong>ISR</strong>
-                        <p class="fragment" style="color: #13daec;">
-                            Delega al <strong >KERNEL</strong> la responsabilitat d'executar
-                            durant una interrupció el codi propi del programa que s'estigui executant
-                        </p>
-                    </p>
+                    <h2>Processament de missatges en temps real</h2>
                 </section>
                 
                 <section>
