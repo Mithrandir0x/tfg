@@ -65,11 +65,11 @@
                             </div>
                             <div class="fragment" style="float: left; width: 208px; margin-right: 16px;">
                                 <img src="img/presentation_diagram_current_architecture_part_03.png" style="width: 208px; margin-top: 48px; background: rgba(113, 233, 244, 0.15);">
-                                <p style="margin-top:76px;">L'evidència es canalitza a través de Flume</p>
+                                <p style="margin-top:76px;">L'evidència es canalitza a través d' <a href="https://flume.apache.org/" alt="Colector de logs distribuit">Apache Flume</a></p>
                             </div>
                             <div class="fragment" style="float: left; width: 208px;">
                                 <img src="img/presentation_diagram_current_architecture_part_04.png" style="width: 208px; margin-top: 40px; background: rgba(113, 233, 244, 0.15);a">
-                                <p style="margin-top:64px;">Eventualment, acaba sent persistida al cluster</p>
+                                <p style="margin-top:64px; font-size: 85%;">Eventualment, acaba sent persistida al cluster per un <a href="https://flume.apache.org/FlumeUserGuide.html#data-flow-model">Sink Agent</a> de Flume.</p>
                             </div>
                             <div style="clear: both;"></div>
                         </div>
@@ -78,16 +78,16 @@
                         <h2>Problemes existents</h2>
                         <div style="">
                             <div style="float: left; width: 254px; margin-right: 16px;">
-                                <img src="img/presentation_diagram_current_architecture_part_01.png" style="width: 254px;">
+                                <img src="img/presentation_diagram_current_architecture_part_01.png" style="width: 254px; background: rgba(113, 233, 244, 0.15);">
                             </div>
                             <div style="float: left; width: 208px; margin-right: 16px;">
-                                <img src="img/presentation_diagram_current_architecture_part_02.png" style="width: 208px; margin-top: 32px;">
+                                <img src="img/presentation_diagram_current_architecture_part_02.png" style="width: 208px; margin-top: 32px; background: rgba(113, 233, 244, 0.15);">
                             </div>
                             <div style="float: left; width: 208px; margin-right: 16px;">
-                                <img src="img/presentation_diagram_current_architecture_part_03.png" style="width: 208px; margin-top: 48px;">
+                                <img src="img/presentation_diagram_current_architecture_part_03.png" style="width: 208px; margin-top: 48px; background: rgba(113, 233, 244, 0.15);">
                             </div>
                             <div style="float: left; width: 208px;">
-                                <img src="img/presentation_diagram_current_architecture_part_04.png" style="width: 208px; margin-top: 40px;">
+                                <img src="img/presentation_diagram_current_architecture_part_04.png" style="width: 208px; margin-top: 40px; background: rgba(113, 233, 244, 0.15);">
                             </div>
                             <div style="clear: both;"></div>
                         </div>
@@ -165,199 +165,70 @@
                             <div style="clear: both;"></div>
                         </div>
                 </section>
-                
-                <section>
-                    <h2>Cicle de vida <!-- small>(ROBOT)</small --></h2>
-                    <p>
-                        Des de la <strong>BIOS</strong> garantitzem que els dispositius estiguin inicialitzats.
-                        Segueix aquest ordre:
-                    </p>
-                    <ol>
-                        <li style="margin-top: 0.25em;" class="fragment">Inicialitzem els perifèrics</li>
-                        <li style="margin-top: 0.25em;" class="fragment">
-                            Inicialitzem el <strong>KERNEL</strong>
-                            <ul>
-                                <li>A partir d'aquí, les interrupcions ja estan activades</li>
-                            </ul>
-                        </li>
-                        <li style="margin-top: 0.25em;" class="fragment">
-                            Enregistrem els programes <strong style="color: #13daec;">(BOOTSTRAP)</strong>
-                            <ul>
-                                <li>S'ha d'explicitar la seva inicialització</li>
-                                <li>
-                                    Donem a l'usuari un punt d'execució on poder
-                                    inicialitzar dades abans d'iniciar el programa
-                                </li>
-                            </ul>
-                        </li>
-                        <li style="margin-top: 0.25em;" class="fragment">
-                            Donem pas al <strong>KERNEL</strong> per que gestioni l'execució de codi
-                            <ul>
-                                <li>Per defecte, passarà al menú de sistema</li>
-                                <li>El menú de sistema és un altre programa!</li>
-                                <li class="fragment">Però reservat, per no ser accessible des del propi menú</li>
-                            </ul>
-                        </li>
-                    </ol>
-                </section>
 
                 <section>
                     <section>
-                        <h2>Com funciona un programa?</h2>
-                        <p>Quan hem seleccionat un dels programes, qué fa?</p>
-                        <p class="fragment" style="margin-top: 1em;">
-                            CONSTRUCCIÓ
-                            <span class="fragment" style="color: #13daec;">
-                                != BOOTSTRAP
-                            </span>
+                        <h2>Log Gateway</h2>
+                        <p>
+                            És un servei dedicat a escoltar les evidències enviades pels dispositius.
                         </p>
-                        <p class="fragment" style="margin-top: 1em;">ACTUALITZACIÓ</p>
-                        <p class="fragment" style="margin-top: 1em;">FINALITZACIÓ</p>
-                        <p style="margin-top: 2em" class="fragment">
-                            I les ISR?
-                            <span class="fragment" style="color: #13daec;">
-                                Compte! Es poden executar en qualsevol de les tres fases
-                            </span>
-                        </p>
-                    </section>
-
-                    <section>
-                        <h2>exemple.c</h2>
-                        <pre><code>#include &lt;hal.h&gt;
-#include &lt;kernel.h&gt;
-#include "exemple.h"
-
-static void construccio()   {}
-static void actualitzacio() {}
-static void finalitzacio()  {}
-static void botons_isr()    {}
-static void timer_a1_isr()  {}
-static void timer_b0_isr()  {}
-
-void exemple_bootstrap() {
-    kerMenu_registerProgram("exemple", &construccio,
-        &actualitzacio, &finalitzacio,
-        &botons_isr, &timer_a1_isr, &timer_b0_isr)
-}</code></pre>
-                    </section>
-
-                    <section>
-                        <h2>Petits detalls</h2>
                         <ul>
-                            <li class="fragment">
-                                Us de la paraula clau <code>static</code>
+                            <li class="fragment">Ofereix una <strong style="color: rgb(113, 233, 244);">implementació simple</strong>.</li>
+                            <li class="fragment">Assegura que totes les evidències puguin arribar al log pipeline.</li>
+                            <li class="fragment">Permet una <strong style="color: rgb(113, 233, 244);">alta capacitat de consumició</strong> d'evidències.</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h2>Cicle de vida d'una evidència</h2>
+                        <img src="img/esquema_cicle_vida_evidencia_log_gateway_happyflowercolors.png" alt="Cicle de vida d'una evidència" style=" background: rgba(255, 255, 255, 0.75);">
+                    </section>
+                    <section>
+                        <h2>
+                            Enviament d'evidències amb Kafka
+                        </h2>
+                        <div>
+                            <div style="float: right; width: 33%;">
+                                <img src="img/presentation_diagram_log_gateway_kafka_brokers.png" style=" background: rgba(255, 255, 255, 0.75);" alt="">
+                            </div>
+                            <div style="float: right; width: 63%;">
                                 <ul>
-                                    <li>Visibilitat de funcions i variables</li>
-                                    <li>Millora la llegibilitat i el manteniment del codi</li>
+                                    <li>
+                                        Integració amb Kafka mitjançant <a href="https://en.wikipedia.org/wiki/Aspect-oriented_programming">programació orientada a aspectes</a>.
+                                    </li>
+                                    <li>
+                                        "Ser/Deser" amb <a href="https://github.com/EsotericSoftware/kryo">Kryo</a>.
+                                    </li>
+                                    <li>
+                                        Les evidències es reparteixen entre totes les particions de Kafka disponibles.
+                                    </li>
                                 </ul>
-                            </li>
-                            <li style="margin-top: 1em;" class="fragment">
-                                És l'usuari qui s'encarrega de
-                                <ul>
-                                    <li class="fragment">mantenir l'estat del seu programa després de cada execució d'aquest</li>
-                                    <li class="fragment">inicialitzar i finalitzar els dispositius que utilitza</li>
-                                </ul>
-                            </li>
-                        </ul>
+                            </div>
+                            <div style="clear:both;"></div>
+                        </div>
                     </section>
-                </section>
-
-                <section>
-                    <h2>KERNEL</h2>
-                    <p>Quins components tenim?</p>
-                    <ul>
-                        <li class="fragment"><code>kernel_bio_ax12</code></li>
-                        <li class="fragment"><code>kernel_bio_axs1</code></li>
-                        <li class="fragment">
-                            <code>kernel_menu</code>
-                            <ul>
-                                <li>
-                                    Dona la funcionalitat necessària per enregistrar i
-                                    controlar el cicle de vida de les aplicacions
-                                </li>
-                                <li>Implementa el menú de sistema</li>
-                            </ul>
-                        </li>
-                    </ul>
-                </section>
-
-                <section>
-                    <h2>HAL</h2>
-                    <p>Què més tenim?</p>
-                    <ul>
-                        <li class="fragment"><code>hal_buttons, hal_led, hal_lcd</code></li>
-                        <li class="fragment">
-                            <code>hal_ucs</code>
-                            <ul>
-                                <li>Permet configurar el micro per treballar a 1MHz (configuració de fàbrica) o a 16MHz</li>
-                            </ul>
-                        </li>
-                        <li class="fragment">
-                            <code>hal_timer</code>
-                            <ul>
-                                <li>Permet treballar amb els timers A1 i B0</li>
-                                <li>Només treballa amb CCR0</li>
-                            </ul>
-                        </li>
-                        <li class="fragment">
-                            <code>hal_bio_com</code>
-                            <ul>
-                                <li>Necessita treballar a 16MHz i utilitza el timer A1</li>
-                                <li>Implementa el protocol de comunicació sèrie per dispositius Bioloid</li>
-                                <li style="color: #13daec;">
-                                    Fa una petita trampa. Implementa una de les rutines d'interrupció sense que
-                                    la <strong>BIOS</strong> s'enteri.
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
                 </section>
 
                 <section>
                     <section>
-                        <h2>ROBOT</h2>
-                        <p>Quines funcionalitats ens proveeix el programa <strong>robot</strong>?</p>
+                        <h2>
+                            Log Pipeline
+                        </h2>
+                        <img src="img/presentation_diagram_log_pipeline.png">
+                    </section>
+                    <section>
+                        <h2>Objectius del Log Pipeline</h2>
                         <ul>
-                            <li class="fragment">Té control manual amb el joystick</li>
-                            <li class="fragment">La pantalla LCD ens informa de la quantitat de IR detectada pel sensor</li>
-                            <li class="fragment">
-                                <p>Pot recorrer habitacions tancades i evitar obstacles en el mig del seu camí</p>
-                                <p style="color: #13daec;">S'ha de pulsar el botó S2 per activar-ho, o desactivar-ho</p>
+                            <li>
+                                Validació
+                            </li>
+                            <li>
+                                Deduplicació
+                            </li>
+                            <li>
+                                Enriquiment
                             </li>
                         </ul>
                     </section>
-                    <section>
-                        <h2>ROBOT-CONFIG</h2>
-                        <p>Complementa el programa <strong>robot</strong> per permetra configurar la sensibilitat amb que detecta obstacles</p>
-                        <ul>
-                            <li>Interval Length <code style="color: #13daec;">(INTR)</code></li>
-                            <li>Threshold Left <code style="color: #13daec;">(TH L)</code></li>
-                            <li>Threshold Right <code style="color: #13daec;">(TH R)</code></li>
-                            <li>Threshold Left (Alt) <code style="color: #13daec;">(THLA)</code></li>
-                            <li>Amb els botons dalt/baix del joystick seleccionem quin paràmetre volem modificar</li>
-                            <li>Amb els botons esq./dreta del joystick restem/sumem al valor seleccionat actualment</li>
-                            <li>Amb el botó S1 podem seleccionar quin sumador volem: 1, 10, 50</li>
-                        </ul>
-                    </section>
-                </section>
-
-                <section>
-                    <h2>Millores</h2>
-                    <ul>
-                        <li style="margin-top: 1em;" class="fragment">
-                            Arreu de tota l'aplicació s'utilitzen <code>int</code>s per variables booleanes.
-                            Es podrien canviar a <code>char</code> per no tenir que usar 2 bytes per cada variable
-                        </li>
-                        <li style="margin-top: 1em;" class="fragment">
-                            El component <code>hal_bio_com</code> té moltes de les variables declarades a nivell global,
-                            que no haurien de tenir visibilitat fora de la propia unitat de codi
-                        </li>
-                        <li style="margin-top: 1em;" class="fragment">
-                            <p>La gestió dels timers no és del tot operativa. S'hauria de tenir en compte la freqüència de
-                            rellotge del micro</p>
-                            <p style="color: #13daec;">El problema és més complicat si afegim el mòdul <code>hal_bio_com</code> a l'equació</p>
-                        </li>
-                    </ul>
                 </section>
 
                 <section>
