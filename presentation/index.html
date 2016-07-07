@@ -218,22 +218,49 @@
                     <section>
                         <h2>Objectius del Log Pipeline</h2>
                         <ul>
-                            <li>
-                                Validació
+                            <li class="fragment">
+                                <strong style="color: rgb(113, 233, 244);">Validació</strong> de la correctessa de les dades
                             </li>
-                            <li>
-                                Deduplicació
+                            <li class="fragment">
+                                <strong style="color: rgb(113, 233, 244);">Deduplicació</strong> d'aquelles evidències o RawLogs repetits
                             </li>
-                            <li>
-                                Enriquiment
+                            <li class="fragment">
+                                <strong style="color: rgb(113, 233, 244);">Enriquiment</strong> per afegir més informació
                             </li>
                         </ul>
                     </section>
                 </section>
 
                 <section>
-                    <h1>ende</h1>
-                    <p><small>Podeu trobar el codi del projecte a: <a href="https://github.com/Mithrandir0x/pae"> github.com/Mithrandir0x/pae</a></small></p>
+                    <section>
+                        <h2>
+                            Mètriques + Visualització = Grafana
+                        </h2>
+                        <img src="img/presentation_diagram_metrics_grafana.png">
+                    </section>
+                    <section>
+                        <h2>Què ens interessa monitorar?</h2>
+                        <p>
+                            S'han de plantejar unes preguntes:
+                        </p>
+                        <ul>
+                            <li class="fragment">
+                                <strong style="color: rgb(113, 233, 244);">Quant de temps es triga</strong> en processar en cadascuna de les etapes de processament?
+                            </li>
+                            <li class="fragment">
+                                <strong style="color: rgb(113, 233, 244);">Quantes evidències estem processant</strong> en cada instant que observem el sistema?
+                            </li>
+                            <li class="fragment">
+                                Quantes evidències ens arriben duplicades? Quantes arriben mal estructurades? Quantes arriben que no són classificables? <br />
+                                En essència, <strong style="color: rgb(113, 233, 244);">quantes són errònies?</strong>
+                            </li>
+                        </ul>
+                    </section>
+                </section>
+
+                <section>
+                    <h1>DEMO</h1>
+                    <p><small>Podeu trobar el codi del projecte a: <a href="https://github.com/Mithrandir0x/tfg"> github.com/Mithrandir0x/tfg</a></small></p>
                 </section>
 
             </div>
